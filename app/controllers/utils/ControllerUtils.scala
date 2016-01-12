@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 HM Revenue & Customs
+ * Copyright 2016 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ class ControllerUtilsWrapped() extends URIInformation {
     s"$baseUrl/$year/$paye_scheme_type/$employer_number/$paye_seq_number/$urlExtension"
   }
 
-  protected def extractUpstreamError(message:String):String = {
+  protected def extractUpstreamError(message:String)(implicit request: Request[AnyContent]):String = {
     val startindex:Int = message.indexOf("appStatusMessage")
     val endindex:Int = message.indexOf(",", startindex)
     if ( startindex >= 0 && endindex > startindex ) {
@@ -97,12 +97,16 @@ class ControllerUtilsWrapped() extends URIInformation {
               } else {
                 Map(("",""))
               }
+
+              Logger.info("GenerateResultBasedOnStatus request: " + request.body.asText)
+              Logger.info("GenerateResultBasedOnStatus reponse: " + response.body)
+
               Ok(response.body).withHeaders(headers.toSeq: _*)
             }
           }
         }
         case _ => {
-          Logger.warn("GenerateResultBasedOnStatus Response Failed status:" + response.status + " json:" + " body:" + response.body )
+          Logger.warn("GenerateResultBasedOnStatus Response Failed status:" + response.status + " json:" + " body:" + response.body + " request:" + request.body.asText)
 
           new Status(response.status)(response.body)
         }
