@@ -39,7 +39,7 @@ trait HmrcTierConnectorWrapped extends ServicesConfig {
     implicit val hcextra = hc.withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
     HmrcTierConnector.http.GET(url).recover{
       case e => {
-        Logger.warn("retrieveDataGet Failed:" + e)
+        Logger.warn("retrieveDataGet Failed, " + e)
         HttpResponse(200, Some(Json.toJson(e.getMessage)))
       }
     }
@@ -49,7 +49,7 @@ trait HmrcTierConnectorWrapped extends ServicesConfig {
     implicit val hcextra = hac.withExtraHeaders(headers.toSeq: _*).withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
     HmrcTierConnector.http.POST(url,requestBody).recover{
       case e => {
-        Logger.warn("retrieveDataPost Failed:" + e)
+        Logger.warn("retrieveDataPost Failed, " + e)
         HttpResponse(200, Some(Json.toJson(e.getMessage)))
       }
     }

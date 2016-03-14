@@ -98,9 +98,6 @@ class ControllerUtilsWrapped() extends URIInformation {
                 Map(("",""))
               }
 
-              Logger.info("GenerateResultBasedOnStatus request: " + request.body.asText)
-              Logger.info("GenerateResultBasedOnStatus reponse: " + response.body)
-
               Ok(response.body).withHeaders(headers.toSeq: _*)
             }
           }
