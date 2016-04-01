@@ -3,7 +3,7 @@ pbik
 
 [![Build Status](https://travis-ci.org/hmrc/pbik.svg)](https://travis-ci.org/hmrc/pbik) [ ![Download](https://api.bintray.com/packages/hmrc/releases/pbik/images/download.svg) ](https://bintray.com/hmrc/releases/pbik/_latestVersion)
 
-This microservice retrieves and writes data from/to a [HoD] system called [NPS], for updating benefits/ expenses and excluding/ rescinding individual employees. The frontend service this interacts with is pbik-frontend.
+The pbik (Payrolling Benefits in Kind) microservice retrieves and writes data from/to a [HoD] system called [NPS], for updating benefits/ expenses and excluding/ rescinding individual employees. The frontend service this interacts with is pbik-frontend.
 
 Requirements
 ------------
@@ -91,6 +91,8 @@ and technology.
 * [NINO]: National Insurance Number
 
 * [NPS]: National Insurance and Pay As You Earn Service
+ 
+* [PBIK]: Payrolling Benefits in Kind
 
 * [URL]: Uniform Resource Locator
 
