@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 HM Revenue & Customs
+ * Copyright 2016 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ class ControllerUtilsTest extends UnitSpec with MockitoSugar {
     override lazy val serviceUrl = mockedBaseUrl
   }
 
-  def mockControllerUtils = new ControllerUtilsWrapped( ) with MockURIInformation {
+  def mockControllerUtils = new ControllerUtilsWrapped() with MockURIInformation {
 
   }
 
@@ -137,6 +137,49 @@ class ControllerUtilsTest extends UnitSpec with MockitoSugar {
     "return valid credentials when parsing a marshalled Pbikcredentials object from json " in {
       val result = await(mockControllerUtils.retrieveCrendtialsFromNPS(mockTierConnector,2015, "TEST1", 123))
       assert(result.aoReference == "aoReference")
+    }
+  }
+
+  "The controller utils" should {
+    "return error code when upstream error 63092" in {
+      val failedResponse = "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";63092\",\"requestUri\":\"\"}"
+      val result = mockControllerUtils.extractUpstreamError(failedResponse)
+      result shouldBe "63092"
+    }
+
+    "return error code when upstream error 64989" in {
+      val failedResponse = "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";64989\",\"requestUri\":\"\"}"
+      val result = mockControllerUtils.extractUpstreamError(failedResponse)
+      result shouldBe "64989"
+    }
+
+    "return default error code when upstream error not found" in {
+      val failedResponse = "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";Invalid version number\",\"requestUri\":\"\"}"
+      val result = mockControllerUtils.extractUpstreamError(failedResponse)
+      result shouldBe ""
+    }
+
+  }
+
+  "When NPS returns response " should {
+    "with headers return the ETAG and TXID headers" in {
+
+      val npsRequestBody = Json.toJson(List.empty[String])
+      implicit val request: Request[AnyContent] = FakeRequest().withJsonBody(npsRequestBody)
+        .withHeaders(HeaderTags.ETAG -> "10", HeaderTags.X_TXID -> "1")
+
+      val result = await(mockControllerUtils.getNPSMutatorSessionHeader(request, hc))
+      result shouldBe Some(Map("ETag" -> "10", "X-TXID" -> "1"))
+    }
+
+    "return None when there is no ETAG value" in {
+
+      val npsRequestBody = Json.toJson(List.empty[String])
+      implicit val request: Request[AnyContent] = FakeRequest().withJsonBody(npsRequestBody)
+        .withHeaders()
+
+      val result = await(mockControllerUtils.getNPSMutatorSessionHeader(request, hc))
+      result shouldBe None
     }
   }
 

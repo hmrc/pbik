@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 HM Revenue & Customs
+ * Copyright 2016 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,8 @@ class GatewayNPSControllerTest extends UnitSpec with MockitoSugar with MockitoMa
         bodyOf(result) shouldBe(sampleBikJson)
       }
     }
-    /*" parse a response correctly and not mutate the returned response body - removal " in {
+
+    " parse a response correctly and not mutate the returned response body - removal " in {
       running( new FakeApplication() ) {
         val gateway = new StubbedGateway
         val CY = 2015
@@ -110,11 +111,11 @@ class GatewayNPSControllerTest extends UnitSpec with MockitoSugar with MockitoMa
         status(result) shouldBe(200)
         bodyOf(result) shouldBe(sampleBikJson)
       }
-    }*/
+    }
   }
 
   "When removing exclusions the Controller " should {
-    /*" parse a response correctly and not mutate the returned response body " in {
+    " parse a response correctly and not mutate the returned response body " in {
       running( new FakeApplication() ) {
         val gateway = new StubbedGateway
         val CY = 2015
@@ -122,7 +123,7 @@ class GatewayNPSControllerTest extends UnitSpec with MockitoSugar with MockitoMa
         status(result) shouldBe(200)
         bodyOf(result) shouldBe(sampleBikJson)
       }
-    }*/
+    }
   }
 
 }

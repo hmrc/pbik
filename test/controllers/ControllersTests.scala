@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 HM Revenue & Customs
+ * Copyright 2016 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,15 +124,14 @@ class ControllersTests extends UnitSpec with MockitoSugar with MockitoMatchers w
 
   }
 
-    "When CY mode is enabled and a call is made to update the next year, the controller " should {
+  "When CY mode is enabled and a call is made to update the next year, the controller " should {
 
-      "allow the call to proceed " in {
-        running(fakeApplication) {
-          val valid = mockCYSupportedGatewayNPSController.cyCheck(TaxYearResolver.currentTaxYear+1)
-          valid shouldBe true
-        }
-
+    "allow the call to proceed " in {
+      running(fakeApplication) {
+        val valid = mockCYSupportedGatewayNPSController.cyCheck(TaxYearResolver.currentTaxYear+1)
+        valid shouldBe true
       }
 
+    }
   }
 }

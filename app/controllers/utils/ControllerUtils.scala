@@ -57,7 +57,7 @@ class ControllerUtilsWrapped() extends URIInformation {
     s"$baseUrl/$year/$paye_scheme_type/$employer_number/$paye_seq_number/$urlExtension"
   }
 
-  protected def extractUpstreamError(message:String)(implicit request: Request[AnyContent]):String = {
+  def extractUpstreamError(message:String)(implicit request: Request[AnyContent]):String = {
     val startindex:Int = message.indexOf("appStatusMessage")
     val endindex:Int = message.indexOf(",", startindex)
     if ( startindex >= 0 && endindex > startindex ) {
