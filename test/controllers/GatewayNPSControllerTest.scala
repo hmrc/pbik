@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,25 +23,31 @@ import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.specs2.mock.mockito.MockitoMatchers
 import play.api.libs.json
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{AnyContent, Request}
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
+import play.api.test.Helpers.{await, _}
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.HttpResponse
-import uk.gov.hmrc.play.test.UnitSpec
-
+import play.api.http.HttpEntity._
 import scala.concurrent.Future
+import helper.MaterializerSupport
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 
-class GatewayNPSControllerTest extends UnitSpec with MockitoSugar with MockitoMatchers with FakePBIKApplication {
+class GatewayNPSControllerTest extends PlaySpec with OneServerPerSuite with MockitoSugar with MockitoMatchers
+      with FakePBIKApplication with MaterializerSupport {
+
+  implicit lazy override val app: Application = new GuiceApplicationBuilder()
+    .configure(config)
+    .build()
 
   class FakeResponse extends HttpResponse {
     override val allHeaders = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
     override def status = 200
     override val json = Json.parse(sampleBikJson)
     override val body = sampleBikJson
-
   }
 
   trait StubServicesConfig extends ServicesConfig {
@@ -70,58 +76,73 @@ class GatewayNPSControllerTest extends UnitSpec with MockitoSugar with MockitoMa
 
   "When getting Benefits Types the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
-      running( new FakeApplication() ) {
+      running(app) {
         val gateway = new StubbedGateway
         val CY = 2015
         val result = await(gateway.getRegisteredBenefits("123/TEST1", 2015).apply(mockrequest))
-        status(result) shouldBe(200)
-        bodyOf(result) shouldBe(sampleBikJson)
+
+        result.header.status must be(OK)
+        result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+        //status(result.) shouldBe 200
+        //bodyOf(result) shouldBe(sampleBikJson)
       }
     }
   }
 
   "When getting exclusions the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
-      running( new FakeApplication() ) {
+      running( app ) {
         val gateway = new StubbedGateway
         val CY = 2015
         val result = await(gateway.getExclusionsForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
-        status(result) shouldBe(200)
-        bodyOf(result) shouldBe(sampleBikJson)
+
+        result.header.status must be(OK)
+        result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+        //status(result) must OK
+        //bodyOf(result) shouldBe(sampleBikJson)
       }
     }
   }
 
   "When updating exclusions the Controller " should {
     " parse a response correctly and not mutate the returned response body - update " in {
-      running( new FakeApplication() ) {
+      running(app) {
         val gateway = new StubbedGateway
         val CY = 2015
         val result = await(gateway.updateExclusionsForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
-        status(result) shouldBe(200)
-        bodyOf(result) shouldBe(sampleBikJson)
+
+        result.header.status must be(OK)
+        result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+        //status(result) must OK
+        //bodyOf(result) shouldBe(sampleBikJson)
       }
     }
 
     " parse a response correctly and not mutate the returned response body - removal " in {
-      running( new FakeApplication() ) {
+      running(app) {
         val gateway = new StubbedGateway
         val CY = 2015
         val result = await(gateway.removeExclusionForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
-        status(result) shouldBe(200)
-        bodyOf(result) shouldBe(sampleBikJson)
+
+        result.header.status must be(OK)
+        result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+        //status(result) shouldBe(200)
+        //bodyOf(result) shouldBe(sampleBikJson)
       }
     }
   }
 
   "When removing exclusions the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
-      running( new FakeApplication() ) {
+      running(app) {
         val gateway = new StubbedGateway
         val CY = 2015
         val result = await(gateway.removeExclusionForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
-        status(result) shouldBe(200)
-        bodyOf(result) shouldBe(sampleBikJson)
+
+        result.header.status must be(OK)
+        result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+        //status(result) shouldBe(200)
+        //bodyOf(result) shouldBe(sampleBikJson)
       }
     }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package controllers
 
-import connectors.{HmrcTierConnectorWrapped, HmrcTierConnector}
-import controllers.utils.{ControllerUtils, URIInformation, ControllerUtilsWrapped}
+import connectors.{HmrcTierConnector, HmrcTierConnectorWrapped}
+import controllers.utils.{ControllerUtils, ControllerUtilsWrapped, URIInformation}
 import models.{HeaderTags, PbikCredentials}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
@@ -26,19 +26,29 @@ import play.api.libs.json.Json
 import play.api.mvc.{AnyContent, Request}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.play.test.UnitSpec
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import play.api.test._
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HttpResponse
+import helper.MaterializerSupport
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import play.api.Application
+import play.api.http.HttpEntity.Strict
+import play.api.inject.guice.GuiceApplicationBuilder
 
-class ControllerUtilsTest extends UnitSpec with MockitoSugar {
+class ControllerUtilsTest extends PlaySpec with OneServerPerSuite  with MockitoSugar with FakePBIKApplication with MaterializerSupport {
+
+  implicit lazy override val app: Application = new GuiceApplicationBuilder()
+    .configure(config)
+    .build()
 
   val testRequestBody = Json.toJson(List.empty[String])
   implicit val request: Request[AnyContent] = FakeRequest().withJsonBody(testRequestBody)
   implicit val formats = Json.format[PbikCredentials]
-  implicit val hc = new HeaderCarrier()
+  //implicit val hc = new HeaderCarrier()
 
   val year = 2014
   val employer_number_code = "Mock-Employer-Number-Code"
@@ -84,9 +94,9 @@ class ControllerUtilsTest extends UnitSpec with MockitoSugar {
 
   "The valid Credential check" should {
     "Return valid credentials from NPS" in {
-      running(FakeApplication()) {
+      running(app) {
         val result = await(mockControllerUtils.retrieveCrendtialsFromNPS(mockHmrcTierConnectorWrapped, year, employer_number_code, paye_scheme_type))
-        result shouldEqual mockCredentials
+        result must be(mockCredentials)
       }
     }
   }
@@ -95,7 +105,7 @@ class ControllerUtilsTest extends UnitSpec with MockitoSugar {
     "Successfully return a response with status 200" in {
 
       val result = await(mockControllerUtils.generateResultBasedOnStatus(Future{mockWsResponseStatus200}))
-      bodyOf(result) shouldBe "Body of response with status 200"
+      result.body.asInstanceOf[Strict].data.utf8String must be("Body of response with status 200")
 
     }
   }
@@ -104,7 +114,7 @@ class ControllerUtilsTest extends UnitSpec with MockitoSugar {
     "Successfully return a response with status 404" in {
 
       val result = await(mockControllerUtils.generateResultBasedOnStatus(Future{mockWsResponseStatus404}))
-      bodyOf(result) shouldBe "Body of response with status 404"
+      result.body.asInstanceOf[Strict].data.utf8String must be("Body of response with status 404")
 
     }
   }
@@ -113,7 +123,7 @@ class ControllerUtilsTest extends UnitSpec with MockitoSugar {
     "Generate valid url" in {
 
       val result = mockControllerUtils.generateURLBasedOnCredentials(mockCredentials,year, mockedBaseUrl,urlExtension)
-      result shouldEqual "baseUrl/2014/1/2/3/urlExtension"
+      result must be("baseUrl/2014/1/2/3/urlExtension")
 
     }
   }
@@ -144,19 +154,19 @@ class ControllerUtilsTest extends UnitSpec with MockitoSugar {
     "return error code when upstream error 63092" in {
       val failedResponse = "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";63092\",\"requestUri\":\"\"}"
       val result = mockControllerUtils.extractUpstreamError(failedResponse)
-      result shouldBe "63092"
+      result must be("63092")
     }
 
     "return error code when upstream error 64989" in {
       val failedResponse = "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";64989\",\"requestUri\":\"\"}"
       val result = mockControllerUtils.extractUpstreamError(failedResponse)
-      result shouldBe "64989"
+      result must be("64989")
     }
 
     "return default error code when upstream error not found" in {
       val failedResponse = "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";Invalid version number\",\"requestUri\":\"\"}"
       val result = mockControllerUtils.extractUpstreamError(failedResponse)
-      result shouldBe ""
+      result must be("")
     }
 
   }
@@ -169,7 +179,7 @@ class ControllerUtilsTest extends UnitSpec with MockitoSugar {
         .withHeaders(HeaderTags.ETAG -> "10", HeaderTags.X_TXID -> "1")
 
       val result = await(mockControllerUtils.getNPSMutatorSessionHeader(request, hc))
-      result shouldBe Some(Map("ETag" -> "10", "X-TXID" -> "1"))
+      result must be(Some(Map("ETag" -> "10", "X-TXID" -> "1")))
     }
 
     "return None when there is no ETAG value" in {
@@ -179,7 +189,7 @@ class ControllerUtilsTest extends UnitSpec with MockitoSugar {
         .withHeaders()
 
       val result = await(mockControllerUtils.getNPSMutatorSessionHeader(request, hc))
-      result shouldBe None
+      result must be(None)
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,20 @@ import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.HttpResponse
 import uk.gov.hmrc.play.test.UnitSpec
 import org.mockito.Mockito._
-import scala.concurrent.Future
 
-class StaticNPSControllerTest extends UnitSpec with MockitoSugar with MockitoMatchers with FakePBIKApplication {
+import scala.concurrent.Future
+import helper.MaterializerSupport
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import play.api.Application
+import play.api.http.HttpEntity.Strict
+import play.api.inject.guice.GuiceApplicationBuilder
+
+class StaticNPSControllerTest extends PlaySpec with OneServerPerSuite with MockitoSugar with MockitoMatchers
+       with FakePBIKApplication with MaterializerSupport{
+
+  implicit lazy override val app: Application = new GuiceApplicationBuilder()
+    .configure(config)
+    .build()
 
   class FakeResponse extends HttpResponse {
     override val allHeaders = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
@@ -61,11 +72,14 @@ class StaticNPSControllerTest extends UnitSpec with MockitoSugar with MockitoMat
 
   "When getting Benefits Types the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
-      running( new FakeApplication() ) {
+      running(app) {
         val CY = 2015
         val result = await(staticNPSController.getBenefitTypes(CY).apply(mockrequest))
-        status(result) shouldBe(200)
-        bodyOf(result) shouldBe(sampleBikJson)
+        result.header.status must be(OK)
+        result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+
+        //status(result) shouldBe(200)
+        //bodyOf(result) shouldBe(sampleBikJson)
       }
     }
   }
