@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import controllers.utils.ControllerUtilsWrapped
 import models.{HeaderTags, PbikCredentials}
 import org.scalatest.mock.MockitoSugar
 import org.specs2.mock.mockito.MockitoMatchers
-import play.api.libs.json.{ Json}
+import play.api.libs.json.Json
 import play.api.libs.ws.WSResponse
 import play.api.mvc.{AnyContent, Request}
 import play.api.test.Helpers._
@@ -31,10 +31,21 @@ import uk.gov.hmrc.play.http.HttpResponse
 import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.time.TaxYearResolver
 import org.mockito.Mockito._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import helper.MaterializerSupport
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import play.api.Application
+import play.api.http.HttpEntity.Strict
+import play.api.inject.guice.GuiceApplicationBuilder
 
-class ControllersTests extends UnitSpec with MockitoSugar with MockitoMatchers with FakePBIKApplication {
+class ControllersTests extends PlaySpec with OneServerPerSuite with MockitoSugar with MockitoMatchers
+      with FakePBIKApplication with MaterializerSupport {
+
+  implicit lazy override val app: Application = new GuiceApplicationBuilder()
+    .configure(config)
+    .build()
 
   val mockCredentials = mock[PbikCredentials]
   val paye_scheme_type: Int = 123
@@ -48,7 +59,7 @@ class ControllersTests extends UnitSpec with MockitoSugar with MockitoMatchers w
   class MockNPSController extends GatewayNPSController with HttpResponse {
 
     val mockControllerUtils = mock[ControllerUtilsWrapped]
-    when(mockControllerUtils.retrieveNPSCredentials(any, anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any)).thenReturn(mockCredentials)
+    when(mockControllerUtils.retrieveNPSCredentials(any, anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any)).thenReturn(Future(mockCredentials))
     when(mockControllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]], any[HeaderCarrier])).thenReturn(Future(Some(mockMutators)))
 
     override lazy val baseURL: String = ""
@@ -72,20 +83,27 @@ class ControllersTests extends UnitSpec with MockitoSugar with MockitoMatchers w
   "A post request" should {
 
     "Successfully update registered benefits " in {
-      running(fakeApplication) {
+      running(app) {
         val result = await(mockGatewayNPSController.updateBenefitTypes(empref, year)(request))
-        bodyOf(result) shouldBe ""
-        status(result) shouldBe 200
-        headers(result) shouldBe Map("Content-Type" -> "text/plain; charset=utf-8", HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")
+
+        result.header.status must be(OK)
+        result.body.asInstanceOf[Strict].data.utf8String must be("")
+        result.header.headers must be(Map(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0"))
+        //bodyOf(result) shouldBe ""
+        //status(result) shouldBe 200
+        //headers(result) shouldBe Map("Content-Type" -> "text/plain; charset=utf-8", HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")
       }
     }
 
     "Successfully update registered exclusions" in {
-      running(fakeApplication) {
+      running(app) {
         val result = await(mockGatewayNPSController.updateExclusionsForEmployer(empref, year, ibdtype)(request))
-        bodyOf(result) shouldBe ""
-        status(result) shouldBe 200
-        headers(result) shouldBe Map("Content-Type" -> "text/plain; charset=utf-8", HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")
+        result.header.status must be(OK)
+        result.body.asInstanceOf[Strict].data.utf8String must be("")
+        result.header.headers must be(Map(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0"))
+        //bodyOf(result) shouldBe ""
+        //status(result) shouldBe 200
+        //headers(result) shouldBe Map("Content-Type" -> "text/plain; charset=utf-8", HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")
       }
     }
 
@@ -93,9 +111,9 @@ class ControllersTests extends UnitSpec with MockitoSugar with MockitoMatchers w
 
   "When CY mode is disabled and a call is made to update a benefit for that year, the controller " should {
       "not allow the call to proceed " in {
-        running(fakeApplication) {
+        running(app) {
           val valid = mockGatewayNPSController.cyCheck(TaxYearResolver.currentTaxYear)
-          valid shouldBe false
+          valid must be(false)
         }
 
     }
@@ -104,9 +122,9 @@ class ControllersTests extends UnitSpec with MockitoSugar with MockitoMatchers w
 
   "When CY mode is disabled and a call is made to update next year, the controller " should {
     "allow the call to proceed " in {
-      running(fakeApplication) {
+      running(app) {
         val valid = mockGatewayNPSController.cyCheck(TaxYearResolver.currentTaxYear+1)
-        valid shouldBe true
+        valid must be(true)
       }
 
     }
@@ -116,9 +134,9 @@ class ControllersTests extends UnitSpec with MockitoSugar with MockitoMatchers w
   "When CY mode is enabled and a call is made to update a benefit for that year, the controller " should {
 
     "allow the call to proceed " in {
-      running(fakeApplication) {
+      running(app) {
         val valid = mockCYSupportedGatewayNPSController.cyCheck(TaxYearResolver.currentTaxYear)
-        valid shouldBe true
+        valid must be(true)
       }
     }
 
@@ -127,9 +145,9 @@ class ControllersTests extends UnitSpec with MockitoSugar with MockitoMatchers w
   "When CY mode is enabled and a call is made to update the next year, the controller " should {
 
     "allow the call to proceed " in {
-      running(fakeApplication) {
+      running(app) {
         val valid = mockCYSupportedGatewayNPSController.cyCheck(TaxYearResolver.currentTaxYear+1)
-        valid shouldBe true
+        valid must be(true)
       }
 
     }

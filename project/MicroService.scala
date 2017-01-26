@@ -14,20 +14,22 @@
  * limitations under the License.
 */
 
-import scoverage.ScoverageSbtPlugin
+import scoverage._
 import sbt.Keys._
-import sbt.Tests.{SubProcess, Group}
+import sbt.Tests.{Group, SubProcess}
 import sbt._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import uk.gov.hmrc.versioning.SbtGitVersioning
+import play.sbt.routes.RoutesKeys.routesGenerator
+import play.routes.compiler.StaticRoutesGenerator
 
 trait MicroService {
 
   import uk.gov.hmrc._
   import uk.gov.hmrc.{SbtBuildInfo, ShellPrompt}
   import TestPhases._
-  import uk.gov.hmrc.DefaultBuildSettings._
+  import DefaultBuildSettings._
   import uk.gov.hmrc.SbtAutoBuildPlugin
 
   val appName: String
@@ -37,7 +39,7 @@ trait MicroService {
   lazy val plugins : Seq[Plugins] = Seq.empty
 
   lazy val microservice = Project(appName, file("."))
-    .enablePlugins(Seq(play.PlayScala) ++ plugins : _*)
+    .enablePlugins(Seq(play.sbt.PlayScala) ++ plugins : _*)
     .settings(playSettings : _*)
     .settings(scalaSettings: _*)
     .settings(publishingSettings: _*)
@@ -49,9 +51,11 @@ trait MicroService {
       parallelExecution in Test := false,
       fork in Test := false,
       retrieveManaged := true,
+      routesGenerator := StaticRoutesGenerator,
       resolvers := Seq(
         "typesafe-releases" at "http://repo.typesafe.com/typesafe/releases/",
-        Resolver.bintrayRepo("hmrc", "releases")
+        Resolver.bintrayRepo("hmrc", "releases"),
+        Resolver.jcenterRepo
       )
     )
 

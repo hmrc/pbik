@@ -14,27 +14,12 @@
  * limitations under the License.
  */
 
-package connectors
+package helper
 
-import play.api.libs.ws.WS
-import play.api.libs.ws.WSRequest
-import uk.gov.hmrc.play.test.UnitSpec
-import org.scalatest.mock._
-import play.api.Play.current
-import play.api.test._
-import play.api.test.Helpers._
-import play.api.Logger
-import models.HeaderTags
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 
-class ConnectorTests extends UnitSpec with MockitoSugar {
-
-  "The HmrcTierConnector " should {
-    "always be defined with a concrete tier connector implementaion" in {
-
-      val wrapped = new HmrcTierConnectorWrapped {}
-      assert(wrapped != null)
-
-    }
-  }
-
+trait MaterializerSupport {
+  implicit val system = ActorSystem("Sys")
+  implicit val materializer = ActorMaterializer()
 }

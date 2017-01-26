@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,13 @@ import com.typesafe.config.Config
 import play.api.Play
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.audit.http.HttpAuditing
-import uk.gov.hmrc.play.audit.http.config.{LoadAuditingConfig, AuditingConfig}
+import uk.gov.hmrc.play.audit.http.config.{AuditingConfig, LoadAuditingConfig}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
 import uk.gov.hmrc.play.auth.microservice.connectors.AuthConnector
 import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
-import uk.gov.hmrc.play.config.{ServicesConfig, ControllerConfig, RunMode, AppName}
+import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode, ServicesConfig}
+import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
 import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
 import uk.gov.hmrc.play.http.ws._
 
@@ -50,18 +51,18 @@ object PbikAuthConnector extends AuthConnector with ServicesConfig {
   override def authBaseUrl: String = baseUrl("auth")
 }
 
-object PbikLoggingFilter extends LoggingFilter {
+object PbikLoggingFilter extends LoggingFilter with MicroserviceFilterSupport {
   override def controllerNeedsLogging(controllerName: String): Boolean =
     PbikControllerConfig.paramsForController(controllerName).needsLogging
 }
 
-object PbikAuditFilter extends AuditFilter with AppName {
+object PbikAuditFilter extends AuditFilter with AppName with MicroserviceFilterSupport {
   override def auditConnector: AuditConnector = PbikAuditConnector
   override def controllerNeedsAuditing(controllerName: String): Boolean =
     PbikControllerConfig.paramsForController(controllerName).needsAuditing
 }
 
-object PbikAuthFilter extends AuthorisationFilter {
+object PbikAuthFilter extends AuthorisationFilter with MicroserviceFilterSupport {
   override def authConnector: AuthConnector = PbikAuthConnector
   override def authParamsConfig: AuthParamsControllerConfig = PbikAuthControllerConfig
   override def controllerNeedsAuth(controllerName: String): Boolean =

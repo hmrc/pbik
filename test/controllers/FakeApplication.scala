@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,12 @@
 package controllers
 
 import uk.gov.hmrc.play.http.SessionKeys
-import uk.gov.hmrc.play.test.WithFakeApplication
 import org.scalatest.Suite
-import play.api.test.FakeApplication
 import uk.gov.hmrc.play.http.HeaderCarrier
 import java.util.UUID
-import play.api.test.{FakeRequest, FakeApplication}
+import play.api.test.FakeRequest
 
-trait FakePBIKApplication extends WithFakeApplication {
+trait FakePBIKApplication {
   this: Suite =>
   val config: Map[String, Any] = Map("application.secret" -> "Its secret",
     "csrf.sign.tokens" -> false,
@@ -39,8 +37,6 @@ trait FakePBIKApplication extends WithFakeApplication {
       |{"iabdType" : "47", "status" : 10, "eilCount" : 0}
       |]
     """.stripMargin
-
-  override lazy val fakeApplication = FakeApplication(additionalConfiguration = config)
 
   def mockrequest = FakeRequest().withSession(
     SessionKeys.sessionId -> s"session-${UUID.randomUUID}",
