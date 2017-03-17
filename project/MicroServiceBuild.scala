@@ -28,11 +28,11 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val playMicroServiceBootstrapVersion = "5.8.0"
-  private val playHealthVersion = "2.0.0"
+  private val playMicroServiceBootstrapVersion = "5.13.0"
+  private val playHealthVersion = "2.1.0"
   //private val playHttpVerbVersion = "3.3.0"
-  private val playConfigVersion = "3.0.0"
-  private val playAuthorisation = "4.2.0"
+  private val playConfigVersion = "4.2.0"
+  private val playAuthorisation = "4.3.0"
   private val logbackJsonLogger = "3.1.0"
   //private val playJsonEncoder = "2.1.1"
   //private val metricsGraphiteVersion = "3.0.2"
