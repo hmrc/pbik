@@ -31,13 +31,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import play.api.test._
 import play.api.test.Helpers._
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.HttpResponse
 import helper.MaterializerSupport
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.Application
 import play.api.http.HttpEntity.Strict
 import play.api.inject.guice.GuiceApplicationBuilder
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 class ControllerUtilsTest extends PlaySpec with OneServerPerSuite  with MockitoSugar with FakePBIKApplication with MaterializerSupport {
 

@@ -16,11 +16,10 @@
 
 package controllers
 
-import uk.gov.hmrc.play.http.SessionKeys
 import org.scalatest.Suite
-import uk.gov.hmrc.play.http.HeaderCarrier
 import java.util.UUID
 import play.api.test.FakeRequest
+import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 
 trait FakePBIKApplication {
   this: Suite =>

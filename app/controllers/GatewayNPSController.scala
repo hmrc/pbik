@@ -22,7 +22,6 @@ import play.api.Play.{configuration, current}
 import play.api.{Play, Logger}
 import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.config.ServicesConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -30,7 +29,6 @@ import models.{HeaderTags, PbikCredentials}
 import scala.Some
 import uk.gov.hmrc.play.http._
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.play.http.logging.SessionId
 import java.net.{URLDecoder, URLEncoder}
 import uk.gov.hmrc.time.TaxYearResolver
 import play.api.mvc.Results._

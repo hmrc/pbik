@@ -19,12 +19,11 @@ package connectors
 import play.api.Logger
 import play.api.libs.json.{Json, JsValue}
 import scala.concurrent.Future
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.HttpResponse
 import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.util.Try
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 object HmrcTierConnectorWrapped extends HmrcTierConnectorWrapped {
 

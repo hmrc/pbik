@@ -26,9 +26,9 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.config.{RunMode, AppName, ServicesConfig}
-import uk.gov.hmrc.play.http.HttpResponse
 import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.play.http.ws._
+import uk.gov.hmrc.http.HttpResponse
 
 class HmrcTierConnectorWrappedTest extends UnitSpec with MockitoSugar with MockitoMatchers with FakePBIKApplication {
 
@@ -45,13 +45,13 @@ class HmrcTierConnectorWrappedTest extends UnitSpec with MockitoSugar with Mocki
     override val hooks = Seq(AuditingHook)
     override def auditConnector = mock[AuditConnector]
 
-    override def doGet(url : scala.Predef.String)(implicit hc : uk.gov.hmrc.play.http.HeaderCarrier) :
-    scala.concurrent.Future[uk.gov.hmrc.play.http.HttpResponse] = new FakeResponse
+    override def doGet(url : scala.Predef.String)(implicit hc : _root_.uk.gov.hmrc.http.HeaderCarrier) :
+    scala.concurrent.Future[_root_.uk.gov.hmrc.http.HttpResponse] = new FakeResponse
 
     override def doPost[A](url : scala.Predef.String, body : A, headers :
     scala.Seq[scala.Tuple2[scala.Predef.String, scala.Predef.String]])
-                          (implicit rds : play.api.libs.json.Writes[A], hc : uk.gov.hmrc.play.http.HeaderCarrier) :
-    scala.concurrent.Future[uk.gov.hmrc.play.http.HttpResponse] = new FakeResponse
+                          (implicit rds : play.api.libs.json.Writes[A], hc : _root_.uk.gov.hmrc.http.HeaderCarrier) :
+    scala.concurrent.Future[_root_.uk.gov.hmrc.http.HttpResponse] = new FakeResponse
 
 
   }
