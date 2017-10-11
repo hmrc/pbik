@@ -17,7 +17,7 @@
 package connectors
 
 import config.WSHttp
-import uk.gov.hmrc.http.{ HttpGet, HttpPost }
+import uk.gov.hmrc.play.http.{HttpGet, HttpPost}
 
 trait HmrcTierConnector {
 
