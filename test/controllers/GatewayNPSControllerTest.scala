@@ -28,12 +28,13 @@ import play.api.mvc.{AnyContent, Request}
 import play.api.test.Helpers.{await, _}
 import uk.gov.hmrc.play.config.ServicesConfig
 import play.api.http.HttpEntity._
+
 import scala.concurrent.Future
 import helper.MaterializerSupport
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 
 class GatewayNPSControllerTest extends PlaySpec with OneServerPerSuite with MockitoSugar with MockitoMatchers
       with FakePBIKApplication with MaterializerSupport {

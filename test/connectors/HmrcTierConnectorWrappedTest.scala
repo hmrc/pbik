@@ -16,7 +16,7 @@
 
 package connectors
 
-import controllers.{GatewayNPSController, FakePBIKApplication}
+import controllers.{FakePBIKApplication, GatewayNPSController}
 import org.apache.http.client.methods.{HttpGet, HttpPost}
 import org.scalatest.mock.MockitoSugar
 import org.specs2.mock.mockito.MockitoMatchers
@@ -25,10 +25,11 @@ import play.api.test.FakeApplication
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.config.{RunMode, AppName, ServicesConfig}
+import uk.gov.hmrc.play.config.{AppName, RunMode, ServicesConfig}
 import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.play.http.ws._
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.play.http.HttpResponse
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 class HmrcTierConnectorWrappedTest extends UnitSpec with MockitoSugar with MockitoMatchers with FakePBIKApplication {
 
@@ -45,13 +46,13 @@ class HmrcTierConnectorWrappedTest extends UnitSpec with MockitoSugar with Mocki
     override val hooks = Seq(AuditingHook)
     override def auditConnector = mock[AuditConnector]
 
-    override def doGet(url : scala.Predef.String)(implicit hc : _root_.uk.gov.hmrc.http.HeaderCarrier) :
-    scala.concurrent.Future[_root_.uk.gov.hmrc.http.HttpResponse] = new FakeResponse
+    override def doGet(url : scala.Predef.String)(implicit hc : HeaderCarrier) :
+    scala.concurrent.Future[_root_.uk.gov.hmrc.play.http.HttpResponse] = new FakeResponse
 
     override def doPost[A](url : scala.Predef.String, body : A, headers :
     scala.Seq[scala.Tuple2[scala.Predef.String, scala.Predef.String]])
-                          (implicit rds : play.api.libs.json.Writes[A], hc : _root_.uk.gov.hmrc.http.HeaderCarrier) :
-    scala.concurrent.Future[_root_.uk.gov.hmrc.http.HttpResponse] = new FakeResponse
+                          (implicit rds : play.api.libs.json.Writes[A], hc : HeaderCarrier) :
+    scala.concurrent.Future[_root_.uk.gov.hmrc.play.http.HttpResponse] = new FakeResponse
 
 
   }
