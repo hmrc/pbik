@@ -18,24 +18,20 @@ package controllers
 
 import connectors.HmrcTierConnectorWrapped
 import controllers.utils.ControllerUtilsWrapped
-import org.scalatest.mock.MockitoSugar
-import org.specs2.mock.mockito.MockitoMatchers
-import play.api.libs.json
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{AnyContent, Request}
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
-import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.test.UnitSpec
-import org.mockito.Mockito._
-
-import scala.concurrent.Future
 import helper.MaterializerSupport
+import org.mockito.Mockito._
+import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import org.specs2.mock.mockito.MockitoMatchers
 import play.api.Application
 import play.api.http.HttpEntity.Strict
 import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
+import play.api.libs.json.Json
+import play.api.test.Helpers._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.config.ServicesConfig
+
+import scala.concurrent.Future
 
 class StaticNPSControllerTest extends PlaySpec with OneServerPerSuite with MockitoSugar with MockitoMatchers
        with FakePBIKApplication with MaterializerSupport{

@@ -31,7 +31,7 @@ import java.net.URLDecoder
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 trait ControllerUtils extends URIInformation {
   val controllerUtils = new ControllerUtilsWrapped()
