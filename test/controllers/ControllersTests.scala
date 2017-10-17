@@ -26,8 +26,6 @@ import play.api.libs.json.Json
 import play.api.libs.ws.WSResponse
 import play.api.mvc.{AnyContent, Request}
 import play.api.test.Helpers._
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.HttpResponse
 import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.time.TaxYearResolver
 import org.mockito.Mockito._
@@ -39,6 +37,7 @@ import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.Application
 import play.api.http.HttpEntity.Strict
 import play.api.inject.guice.GuiceApplicationBuilder
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 class ControllersTests extends PlaySpec with OneServerPerSuite with MockitoSugar with MockitoMatchers
       with FakePBIKApplication with MaterializerSupport {
