@@ -16,17 +16,15 @@
 
 package connectors
 
-import controllers.{GatewayNPSController, FakePBIKApplication}
-import org.apache.http.client.methods.{HttpGet, HttpPost}
+import controllers.FakePBIKApplication
 import org.scalatest.mock.MockitoSugar
 import org.specs2.mock.mockito.MockitoMatchers
 import play.api.libs.json.Json
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
+import uk.gov.hmrc.http.hooks.HttpHooks
+import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.config.{RunMode, AppName, ServicesConfig}
-import uk.gov.hmrc.play.http.HttpResponse
+import uk.gov.hmrc.play.config.{AppName, RunMode, ServicesConfig}
 import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.play.http.ws._
 
@@ -40,18 +38,18 @@ class HmrcTierConnectorWrappedTest extends UnitSpec with MockitoSugar with Mocki
 
   }
 
-  object StubbedWSHttp extends scala.AnyRef with WSGet with WSPut with WSPost with WSDelete with WSPatch with AppName with RunMode with HttpAuditing {
+  object StubbedWSHttp extends scala.AnyRef with WSGet with HttpGet with WSPut with HttpPut with WSPost with HttpPost with WSDelete with HttpDelete with WSPatch with HttpPatch with AppName with RunMode with HttpHooks with HttpAuditing {
 
     override val hooks = Seq(AuditingHook)
     override def auditConnector = mock[AuditConnector]
 
-    override def doGet(url : scala.Predef.String)(implicit hc : uk.gov.hmrc.play.http.HeaderCarrier) :
-    scala.concurrent.Future[uk.gov.hmrc.play.http.HttpResponse] = new FakeResponse
+    override def doGet(url : scala.Predef.String)(implicit hc : HeaderCarrier) :
+    scala.concurrent.Future[HttpResponse] = new FakeResponse
 
     override def doPost[A](url : scala.Predef.String, body : A, headers :
     scala.Seq[scala.Tuple2[scala.Predef.String, scala.Predef.String]])
-                          (implicit rds : play.api.libs.json.Writes[A], hc : uk.gov.hmrc.play.http.HeaderCarrier) :
-    scala.concurrent.Future[uk.gov.hmrc.play.http.HttpResponse] = new FakeResponse
+                          (implicit rds : play.api.libs.json.Writes[A], hc : HeaderCarrier) :
+    scala.concurrent.Future[HttpResponse] = new FakeResponse
 
 
   }

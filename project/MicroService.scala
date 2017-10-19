@@ -56,7 +56,8 @@ trait MicroService {
         "typesafe-releases" at "http://repo.typesafe.com/typesafe/releases/",
         Resolver.bintrayRepo("hmrc", "releases"),
         Resolver.jcenterRepo
-      )
+      ),
+      scalaVersion := "2.11.11"
     )
 
     .settings(inConfig(TemplateTest)(Defaults.testSettings): _*)
