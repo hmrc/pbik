@@ -29,7 +29,7 @@ private object AppDependencies {
   import play.core.PlayVersion
 
   private val playMicroServiceBootstrapVersion = "6.18.0"
-  private val hmrcTestVersion = "2.2.0"
+  private val hmrcTestVersion = "2.4.0"
   private val scalaTestVersion = "2.2.6"
   private val pegdownVersion = "1.6.0"
   private val scalatestPlusPlayVersion = "1.5.1"
