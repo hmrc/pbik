@@ -28,16 +28,18 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val playMicroServiceBootstrapVersion = "8.5.0"
-  private val hmrcTestVersion = "3.2.0"
+  private val playMicroServiceBootstrapVersion = "10.0.0"
+  private val hmrcTestVersion = "3.3.0"
   private val scalaTestVersion = "3.0.5"
   private val pegdownVersion = "1.6.0"
   private val scalatestPlusPlayVersion = "2.0.1"
   private val specs2Version = "2.3.13"
+  private val taxYearVersion = "0.4.0"
 
   val compile = Seq(
     ws,
-    "uk.gov.hmrc" %% "microservice-bootstrap" % playMicroServiceBootstrapVersion
+    "uk.gov.hmrc" %% "microservice-bootstrap" % playMicroServiceBootstrapVersion,
+    "uk.gov.hmrc" %% "tax-year" % taxYearVersion
 
   )
 
@@ -54,7 +56,8 @@ private object AppDependencies {
         "org.pegdown" % "pegdown" % pegdownVersion % scope,
         "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion % scope,
         "org.specs2" % "specs2_2.10" % specs2Version,
-        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
+        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
+        "uk.gov.hmrc" %% "tax-year" % taxYearVersion % scope
       )
     }.test
   }

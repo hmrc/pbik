@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import play.api.libs.ws.WSResponse
 import play.api.mvc.{AnyContent, Request}
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.test.UnitSpec
-import uk.gov.hmrc.time.TaxYearResolver
+import uk.gov.hmrc.time.TaxYear
 import org.mockito.Mockito._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -53,7 +53,7 @@ class ControllersTests extends PlaySpec with OneServerPerSuite with MockitoSugar
   val empref = "123/TEST1"
   val mockMutators:Map[String, String] = Map[String,String]()
   val ibdtype = 39
-  val year = TaxYearResolver.currentTaxYear+1
+  val year = TaxYear.current.currentYear+1
 
   class MockNPSController extends GatewayNPSController with HttpResponse {
 
@@ -111,7 +111,7 @@ class ControllersTests extends PlaySpec with OneServerPerSuite with MockitoSugar
   "When CY mode is disabled and a call is made to update a benefit for that year, the controller " should {
       "not allow the call to proceed " in {
         running(app) {
-          val valid = mockGatewayNPSController.cyCheck(TaxYearResolver.currentTaxYear)
+          val valid = mockGatewayNPSController.cyCheck(TaxYear.current.currentYear)
           valid must be(false)
         }
 
@@ -122,7 +122,7 @@ class ControllersTests extends PlaySpec with OneServerPerSuite with MockitoSugar
   "When CY mode is disabled and a call is made to update next year, the controller " should {
     "allow the call to proceed " in {
       running(app) {
-        val valid = mockGatewayNPSController.cyCheck(TaxYearResolver.currentTaxYear+1)
+        val valid = mockGatewayNPSController.cyCheck(TaxYear.current.currentYear+1)
         valid must be(true)
       }
 
@@ -134,7 +134,7 @@ class ControllersTests extends PlaySpec with OneServerPerSuite with MockitoSugar
 
     "allow the call to proceed " in {
       running(app) {
-        val valid = mockCYSupportedGatewayNPSController.cyCheck(TaxYearResolver.currentTaxYear)
+        val valid = mockCYSupportedGatewayNPSController.cyCheck(TaxYear.current.currentYear)
         valid must be(true)
       }
     }
@@ -145,7 +145,7 @@ class ControllersTests extends PlaySpec with OneServerPerSuite with MockitoSugar
 
     "allow the call to proceed " in {
       running(app) {
-        val valid = mockCYSupportedGatewayNPSController.cyCheck(TaxYearResolver.currentTaxYear+1)
+        val valid = mockCYSupportedGatewayNPSController.cyCheck(TaxYear.current.currentYear+1)
         valid must be(true)
       }
 
