@@ -32,7 +32,7 @@ trait MicroService {
   import uk.gov.hmrc._
   import uk.gov.hmrc.{SbtBuildInfo, ShellPrompt}
   import TestPhases._
-  import DefaultBuildSettings._
+  import DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
   import uk.gov.hmrc.SbtAutoBuildPlugin
 
   val appName: String
