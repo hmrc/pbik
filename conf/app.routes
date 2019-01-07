@@ -1,12 +1,12 @@
 # microservice specific routes
 
 # Unsecured static data available to all clients
-GET /epaye/:year/getbenefittypes                            controllers.StaticNPSController.getBenefitTypes(year: Int)
+GET /epaye/:year/getbenefittypes                            @controllers.StaticNPSController.getBenefitTypes(year: Int)
 
 # Secured Controller calls
-GET /epaye/:empRef/:year                                    controllers.GatewayNPSController.getRegisteredBenefits(empRef:String,year:Int)
-GET /epaye/:empRef/:year/:ibdtype/exclusion                 controllers.GatewayNPSController.getExclusionsForEmployer(empRef:String,year:Int,ibdtype:Int)
-POST /epaye/:empRef/:year/:ibdtype/exclusion/update         controllers.GatewayNPSController.updateExclusionsForEmployer(empRef:String,year:Int,ibdtype:Int)
-POST /epaye/:empRef/:year/:ibdtype/exclusion/remove         controllers.GatewayNPSController.removeExclusionForEmployer(empRef:String,year:Int,ibdtype:Int)
-POST /epaye/:empRef/:year/updatebenefittypes                controllers.GatewayNPSController.updateBenefitTypes(empRef:String,year:Int)
+GET /epaye/:empRef/:year                                    @controllers.GatewayNPSController.getRegisteredBenefits(empRef:String,year:Int)
+GET /epaye/:empRef/:year/:ibdtype/exclusion                 @controllers.GatewayNPSController.getExclusionsForEmployer(empRef:String,year:Int,ibdtype:Int)
+POST /epaye/:empRef/:year/:ibdtype/exclusion/update         @controllers.GatewayNPSController.updateExclusionsForEmployer(empRef:String,year:Int,ibdtype:Int)
+POST /epaye/:empRef/:year/:ibdtype/exclusion/remove         @controllers.GatewayNPSController.removeExclusionForEmployer(empRef:String,year:Int,ibdtype:Int)
+POST /epaye/:empRef/:year/updatebenefittypes                @controllers.GatewayNPSController.updateBenefitTypes(empRef:String,year:Int)
 

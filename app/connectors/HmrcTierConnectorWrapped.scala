@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package connectors
 
+import config.RunModeConfig
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -26,11 +27,11 @@ import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.util.Try
 
-object HmrcTierConnectorWrapped extends HmrcTierConnectorWrapped {
+object HmrcTierConnectorWrapped extends HmrcTierConnectorWrapped  {
 
 }
 
-trait HmrcTierConnectorWrapped extends ServicesConfig {
+trait HmrcTierConnectorWrapped extends ServicesConfig with RunModeConfig {
 
   val serviceOriginatorIdKey = Try{getConfString("nps.originatoridkey", "")}.getOrElse("")
   val serviceOriginatorId = Try{getConfString("nps.originatoridvalue", "")}.getOrElse("")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,23 @@
 
 package controllers
 
+import config.RunModeConfig
 import connectors.HmrcTierConnector
-import controllers.utils.{ControllerUtils}
-import play.api.Play.{configuration, current}
-import play.api.{Play, Logger}
+import controllers.utils.ControllerUtils
+import models.PbikCredentials
 import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.play.config.ServicesConfig
-import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.{Logger, Play}
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import models.{HeaderTags, PbikCredentials}
-import scala.Some
-import uk.gov.hmrc.play.http._
-import scala.concurrent.ExecutionContext.Implicits.global
-import java.net.{URLDecoder, URLEncoder}
-import uk.gov.hmrc.time.TaxYearResolver
-import play.api.mvc.Results._
+import uk.gov.hmrc.time.TaxYear
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
- * Controller for the gateway service.
- */
-object GatewayNPSController extends GatewayNPSController {
+class GatewayNPSController extends BaseController with ControllerUtils with HmrcTierConnector with RunModeConfig{
+
 
   val NO_HEADERS = Map[String,String]()
-
-}
-
-class GatewayNPSController extends BaseController with ControllerUtils with HmrcTierConnector {
-
 
   val cyEnabled: Boolean = Play.current.configuration.getBoolean("cymode.enabled").getOrElse(false)
   Logger.info("Current Year registrations allowed: " + cyEnabled)
@@ -58,9 +45,9 @@ class GatewayNPSController extends BaseController with ControllerUtils with Hmrc
    * @return Boolean true if either cy mode is enabled or if its disabled but the year supplied is not the current year
    * */
   def cyCheck(year: Int):Boolean = {
-    if ( TaxYearResolver.currentTaxYear == year & cyEnabled == false) {
+    if ( TaxYear.current.currentYear == year & cyEnabled == false) {
       Logger.warn("Support for Current Year is " + cyEnabled + " and currentYear is " +
-        TaxYearResolver.currentTaxYear + ". Attempt to update Benefits Type for Current Year rejected")
+        TaxYear.current.currentYear + ". Attempt to update Benefits Type for Current Year rejected")
       false
     } else {
       true

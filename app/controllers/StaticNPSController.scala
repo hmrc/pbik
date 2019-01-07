@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
 
 package controllers
 
-import uk.gov.hmrc.play.microservice.controller.BaseController
-import controllers.utils.ControllerUtils
+import config.RunModeConfig
 import connectors.HmrcTierConnector
-import play.api.libs.json.Json
+import controllers.utils.ControllerUtils
 import models.PbikCredentials
+import play.api.libs.json.Json
 import play.api.mvc.Action
+import uk.gov.hmrc.play.microservice.controller.BaseController
 
-object StaticNPSController extends StaticNPSController
 
-class StaticNPSController extends BaseController with ControllerUtils with HmrcTierConnector {
+class StaticNPSController extends BaseController with ControllerUtils  with HmrcTierConnector with RunModeConfig{
 
   implicit val formats = Json.format[PbikCredentials]
 

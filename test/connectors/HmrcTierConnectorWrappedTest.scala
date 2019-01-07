@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,13 @@
 
 package connectors
 
+import akka.actor.ActorSystem
+import com.typesafe.config.Config
+import config.RunModeConfig
 import controllers.FakePBIKApplication
 import org.scalatest.mock.MockitoSugar
 import org.specs2.mock.mockito.MockitoMatchers
+import play.api.{Configuration, Play}
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.hooks.HttpHooks
 import uk.gov.hmrc.http._
@@ -38,11 +42,14 @@ class HmrcTierConnectorWrappedTest extends UnitSpec with MockitoSugar with Mocki
 
   }
 
-  object StubbedWSHttp extends scala.AnyRef with WSGet with HttpGet with WSPut with HttpPut with WSPost with HttpPost with WSDelete with HttpDelete with WSPatch with HttpPatch with AppName with RunMode with HttpHooks with HttpAuditing {
+  object StubbedWSHttp extends scala.AnyRef with WSGet with HttpGet with WSPut with HttpPut with WSPost with HttpPost with WSDelete with HttpDelete with WSPatch with HttpPatch with AppName with RunMode with HttpHooks with HttpAuditing with RunModeConfig{
 
     override val hooks = Seq(AuditingHook)
     override def auditConnector = mock[AuditConnector]
+    override protected def appNameConfiguration: Configuration = Play.current.configuration
 
+    override protected def actorSystem: ActorSystem = Play.current.actorSystem
+    override protected val configuration: Option[Config] = Some(Play.current.configuration.underlying)
     override def doGet(url : scala.Predef.String)(implicit hc : HeaderCarrier) :
     scala.concurrent.Future[HttpResponse] = new FakeResponse
 

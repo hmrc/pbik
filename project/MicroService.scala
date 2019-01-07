@@ -20,16 +20,19 @@ import sbt.Tests.{Group, SubProcess}
 import sbt._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
-import uk.gov.hmrc.versioning.SbtGitVersioning
 import play.sbt.routes.RoutesKeys.routesGenerator
 import play.routes.compiler.StaticRoutesGenerator
+import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
+import uk.gov.hmrc.SbtAutoBuildPlugin
+import uk.gov.hmrc.versioning.SbtGitVersioning
+import uk.gov.hmrc.SbtArtifactory
 
 trait MicroService {
 
   import uk.gov.hmrc._
   import uk.gov.hmrc.{SbtBuildInfo, ShellPrompt}
   import TestPhases._
-  import DefaultBuildSettings._
+  import DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
   import uk.gov.hmrc.SbtAutoBuildPlugin
 
   val appName: String
@@ -39,11 +42,12 @@ trait MicroService {
   lazy val plugins : Seq[Plugins] = Seq.empty
 
   lazy val microservice = Project(appName, file("."))
-    .enablePlugins(Seq(play.sbt.PlayScala) ++ plugins : _*)
+    .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
     .settings(playSettings : _*)
     .settings(scalaSettings: _*)
     .settings(publishingSettings: _*)
     .settings(playSettings ++ scoverageSettings : _*)
+    .settings(majorVersion := 4)
     .settings(defaultSettings(): _*)
     .settings(
       targetJvm := "jvm-1.8",
