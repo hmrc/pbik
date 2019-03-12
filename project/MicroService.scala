@@ -30,49 +30,35 @@ import uk.gov.hmrc.SbtArtifactory
 trait MicroService {
 
   import uk.gov.hmrc._
-  import uk.gov.hmrc.{SbtBuildInfo, ShellPrompt}
-  import TestPhases._
-  import DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
+  import DefaultBuildSettings.{defaultSettings, scalaSettings, targetJvm}
   import uk.gov.hmrc.SbtAutoBuildPlugin
 
   val appName: String
-
-  lazy val appDependencies : Seq[ModuleID] = ???
-  lazy val playSettings : Seq[Setting[_]] = Seq.empty
-  lazy val plugins : Seq[Plugins] = Seq.empty
+  val appDependencies: Seq[ModuleID]
+  lazy val playSettings: Seq[Setting[_]] = Seq.empty
+  lazy val plugins: Seq[Plugins] = Seq(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
 
   lazy val microservice = Project(appName, file("."))
-    .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
-    .settings(playSettings : _*)
+    .enablePlugins(plugins: _*)
+    .settings(playSettings: _*)
     .settings(scalaSettings: _*)
     .settings(publishingSettings: _*)
-    .settings(playSettings ++ scoverageSettings : _*)
+    .settings(playSettings ++ scoverageSettings: _*)
     .settings(majorVersion := 4)
     .settings(defaultSettings(): _*)
     .settings(
-      targetJvm := "jvm-1.8",
       libraryDependencies ++= appDependencies,
       parallelExecution in Test := false,
       fork in Test := false,
       retrieveManaged := true,
       routesGenerator := StaticRoutesGenerator,
-      resolvers := Seq(
+      resolvers ++= Seq(
         "typesafe-releases" at "http://repo.typesafe.com/typesafe/releases/",
+        "hmrc-releases" at "https://artefacts.tax.service.gov.uk/artifactory/hmrc-releases/",
         Resolver.bintrayRepo("hmrc", "releases"),
         Resolver.jcenterRepo
-      ),
-      scalaVersion := "2.11.11"
+      )
     )
-
-    .settings(inConfig(TemplateTest)(Defaults.testSettings): _*)
-    .configs(IntegrationTest)
-    .settings(inConfig(TemplateItTest)(Defaults.itSettings): _*)
-    .settings(
-      Keys.fork in IntegrationTest := false,
-      unmanagedSourceDirectories in IntegrationTest <<= (baseDirectory in IntegrationTest)(base => Seq(base / "it")),
-      addTestReportOption(IntegrationTest, "int-test-reports"),
-      testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
-      parallelExecution in IntegrationTest := false)
     .enablePlugins(SbtAutoBuildPlugin, SbtGitVersioning)
     .enablePlugins(SbtDistributablesPlugin)
 
@@ -88,20 +74,8 @@ trait MicroService {
       ScoverageKeys.coverageFailOnMinimum := true,
       ScoverageKeys.coverageHighlighting := true
     )
-
   }
 }
 
-private object TestPhases {
 
-  val allPhases = "tt->test;test->test;test->compile;compile->compile"
-  val allItPhases = "tit->it;it->it;it->compile;compile->compile"
 
-  lazy val TemplateTest = config("tt") extend Test
-  lazy val TemplateItTest = config("tit") extend IntegrationTest
-
-  def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =
-    tests map {
-      test => new Group(test.name, Seq(test), SubProcess(ForkOptions(runJVMOptions = Seq("-Dtest.name=" + test.name))))
-    }
-}
