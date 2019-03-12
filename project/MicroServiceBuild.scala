@@ -28,18 +28,10 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val playMicroServiceBootstrapVersion = "10.0.0"
-  private val hmrcTestVersion = "3.3.0"
-  private val scalaTestVersion = "3.0.5"
-  private val pegdownVersion = "1.6.0"
-  private val scalatestPlusPlayVersion = "2.0.1"
-  private val specs2Version = "2.3.13"
-  private val taxYearVersion = "0.4.0"
-
   val compile = Seq(
     ws,
-    "uk.gov.hmrc" %% "microservice-bootstrap" % playMicroServiceBootstrapVersion,
-    "uk.gov.hmrc" %% "tax-year" % taxYearVersion
+    "uk.gov.hmrc" %% "microservice-bootstrap" % "10.4.0",
+    "uk.gov.hmrc" %% "tax-year" % "0.5.0"
 
   )
 
@@ -51,13 +43,11 @@ private object AppDependencies {
   object Test {
     def apply() = new TestDependencies {
       override lazy val test = Seq(
-        "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
-        "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
-        "org.pegdown" % "pegdown" % pegdownVersion % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion % scope,
-        "org.specs2" % "specs2_2.10" % specs2Version,
+        "uk.gov.hmrc" %% "hmrctest" % "3.6.0-play-25" % scope,
+        "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % scope,
+        "org.specs2" % "specs2_2.10" % "2.3.13",
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "uk.gov.hmrc" %% "tax-year" % taxYearVersion % scope
+        "uk.gov.hmrc" %% "tax-year" % "0.5.0" % scope
       )
     }.test
   }
