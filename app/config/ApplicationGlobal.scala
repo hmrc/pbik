@@ -16,8 +16,8 @@
 
 package config
 
-import play.api.{Application, Configuration}
 import play.api.mvc.EssentialFilter
+import play.api.{Application, Configuration, Play}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.config.RunMode
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
@@ -26,13 +26,13 @@ import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter}
 object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode with RunModeConfig {
 
   override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] =
-    app.configuration.getConfig(s"microservice.metrics")
+    app.configuration.getConfig("microservice.metrics")
 
   override lazy val auditConnector: AuditConnector = PbikAuditConnector
 
-  override lazy val loggingFilter: LoggingFilter = PbikLoggingFilter
+  override lazy val loggingFilter: LoggingFilter =  Play.current.injector.instanceOf[PbikLoggingFilter]
 
-  override lazy val microserviceAuditFilter: AuditFilter = PbikAuditFilter
+  override lazy val microserviceAuditFilter: AuditFilter = Play.current.injector.instanceOf[PbikAuditFilter]
 
-  override lazy val authFilter: Option[EssentialFilter] = Some(PbikAuthFilter)
+  override lazy val authFilter: Option[EssentialFilter] = Some(Play.current.injector.instanceOf[PbikAuthFilter])
 }
