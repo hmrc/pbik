@@ -16,29 +16,25 @@
 
 package connectors
 
-import config.RunModeConfig
+import config.{RunModeConfig, WSHttp}
+import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.play.config.ServicesConfig
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.util.Try
 
-object HmrcTierConnectorWrapped extends HmrcTierConnectorWrapped  {
-
-}
-
-trait HmrcTierConnectorWrapped extends ServicesConfig with RunModeConfig {
+class HmrcTierConnectorWrapped @Inject()(val http:WSHttp) extends ServicesConfig with RunModeConfig {
 
   val serviceOriginatorIdKey = Try{getConfString("nps.originatoridkey", "")}.getOrElse("")
   val serviceOriginatorId = Try{getConfString("nps.originatoridvalue", "")}.getOrElse("")
 
   def retrieveDataGet(url: String)(hc:HeaderCarrier): Future[HttpResponse] = {
     implicit val hcextra = hc.withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
-    HmrcTierConnector.http.GET(url).recover{
+    http.GET(url).recover{
       case e => {
         Logger.warn("retrieveDataGet Failed, " + e)
         HttpResponse(200, Some(Json.toJson(e.getMessage)))
@@ -48,7 +44,7 @@ trait HmrcTierConnectorWrapped extends ServicesConfig with RunModeConfig {
 
   def retrieveDataPost(headers: Map[String,String], url: String, requestBody: JsValue)(hac:HeaderCarrier): Future[HttpResponse] = {
     implicit val hcextra = hac.withExtraHeaders(headers.toSeq: _*).withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
-    HmrcTierConnector.http.POST(url,requestBody).recover{
+    http.POST(url,requestBody).recover{
       case e => {
         Logger.warn("retrieveDataPost Failed, " + e)
         HttpResponse(200, Some(Json.toJson(e.getMessage)))

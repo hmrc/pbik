@@ -16,27 +16,25 @@
 
 package controllers
 
-import connectors.{HmrcTierConnector, HmrcTierConnectorWrapped}
-import controllers.utils.{ControllerUtils, ControllerUtilsWrapped, URIInformation}
-import models.{HeaderTags, PbikCredentials}
-import org.mockito.Mockito._
-import org.mockito.Matchers._
-import org.scalatest.mock.MockitoSugar
-import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, Request}
-import play.api.test.FakeRequest
-import uk.gov.hmrc.play.test.UnitSpec
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import play.api.test._
-import play.api.test.Helpers._
+import connectors.HmrcTierConnectorWrapped
+import controllers.utils.{ControllerUtilsWrapped, URIInformation}
 import helper.MaterializerSupport
+import models.{HeaderTags, PbikCredentials}
+import org.mockito.Matchers._
+import org.mockito.Mockito._
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.Application
 import play.api.http.HttpEntity.Strict
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
+import play.api.mvc.{AnyContent, Request}
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class ControllerUtilsTest extends PlaySpec with OneServerPerSuite  with MockitoSugar with FakePBIKApplication with MaterializerSupport {
 

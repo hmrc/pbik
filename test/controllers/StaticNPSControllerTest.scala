@@ -19,10 +19,10 @@ package controllers
 import connectors.HmrcTierConnectorWrapped
 import controllers.utils.ControllerUtilsWrapped
 import helper.MaterializerSupport
+import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
-import org.specs2.mock.mockito.MockitoMatchers
 import play.api.Application
 import play.api.http.HttpEntity.Strict
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -33,7 +33,7 @@ import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.Future
 
-class StaticNPSControllerTest extends PlaySpec with OneServerPerSuite with MockitoSugar with MockitoMatchers
+class StaticNPSControllerTest extends PlaySpec with OneServerPerSuite with MockitoSugar
        with FakePBIKApplication with MaterializerSupport{
 
   implicit lazy override val app: Application = new GuiceApplicationBuilder()
@@ -57,9 +57,10 @@ class StaticNPSControllerTest extends PlaySpec with OneServerPerSuite with Mocki
 
   }
 
-  val staticNPSController = new StaticNPSController with StubServicesConfig {
+  val tierConnector = mock[HmrcTierConnectorWrapped]
+  val staticNPSController = new StaticNPSController(tierConnector) with StubServicesConfig {
     override val controllerUtils = new StubbedControllerWrapped
-    override val tierConnector = mock[HmrcTierConnectorWrapped]
+
 
 
     when(tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier])).thenReturn(Future.successful(new FakeResponse))

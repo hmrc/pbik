@@ -17,11 +17,12 @@
 package config
 
 import akka.actor.ActorSystem
+import com.google.inject.{ImplementedBy, Inject}
 import com.typesafe.config.Config
-import play.api.{Configuration, Play}
 import play.api.Mode.Mode
+import play.api.{Configuration, Play}
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.http.hooks.HttpHooks
+import uk.gov.hmrc.http.hooks.{HttpHook, HttpHooks}
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -33,7 +34,7 @@ import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.play.microservice.config.LoadAuditingConfig
 import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
 
-
+//TODO remove
 trait RunModeConfig {
   def runModeConfiguration: Configuration = Play.current.configuration
   def mode: Mode = Play.current.mode
@@ -44,55 +45,66 @@ object MicroserviceAuditConnector extends AuditConnector {
 }
 
 trait Hooks extends HttpHooks with HttpAuditing {
-  override val hooks = Seq(AuditingHook)
+  override val hooks: Seq[HttpHook] = Seq(AuditingHook)
   override lazy val auditConnector: AuditConnector = MicroserviceAuditConnector
 }
 
+@ImplementedBy(classOf[WSHttpImpl])
 trait WSHttp extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpDelete with WSDelete with Hooks with AppName
 
-object WSHttp extends WSHttp {
-  override protected def appNameConfiguration: Configuration = Play.current.configuration
-
-  override protected def actorSystem: ActorSystem = Play.current.actorSystem
-  override protected val configuration: Option[Config] = Some(Play.current.configuration.underlying)
+class WSHttpImpl @Inject()(
+                            config: Configuration,
+                            val actorSystem: ActorSystem
+                          ) extends WSHttp {
+  override val appNameConfiguration: Configuration = config
+  override protected val configuration: Option[Config] = Some(config.underlying)
 }
 
-
-object PbikControllerConfig extends ControllerConfig {
-  override lazy val controllerConfigs: Config = Play.current.configuration.underlying.getConfig("controllers")
+class PbikControllerConfig @Inject()(configuration: Configuration) extends ControllerConfig {
+  override lazy val controllerConfigs: Config = configuration.underlying.getConfig("controllers")
 }
 
-object PbikAuthControllerConfig extends AuthParamsControllerConfig {
-  override lazy val controllerConfigs: Config = PbikControllerConfig.controllerConfigs
+class PbikAuthControllerConfig @Inject()(controllerConfig: PbikControllerConfig) extends AuthParamsControllerConfig {
+  override lazy val controllerConfigs: Config = controllerConfig.controllerConfigs
 }
 
 object PbikAuditConnector extends AuditConnector with RunModeConfig {
   override lazy val auditingConfig: AuditingConfig = LoadAuditingConfig(s"auditing")
 }
 
-object PbikAuthConnector extends AuthConnector with ServicesConfig with WSHttp with RunModeConfig {
+class PbikAuthConnector @Inject()(
+                                   val appNameConfiguration: Configuration,
+                                   val actorSystem: ActorSystem
+                                 ) extends AuthConnector with ServicesConfig with WSHttp with RunModeConfig {
+
   override def authBaseUrl: String = baseUrl("auth")
-  override protected def appNameConfiguration: Configuration = Play.current.configuration
 
-  override protected def actorSystem: ActorSystem = Play.current.actorSystem
-  override protected val configuration: Option[Config] = Some(Play.current.configuration.underlying)
+  override protected val configuration: Option[Config] = Some(appNameConfiguration.underlying)
 }
 
-object PbikLoggingFilter extends LoggingFilter with MicroserviceFilterSupport {
+class PbikLoggingFilter @Inject()(pbikControllerConfig: PbikControllerConfig) extends LoggingFilter with MicroserviceFilterSupport {
   override def controllerNeedsLogging(controllerName: String): Boolean =
-    PbikControllerConfig.paramsForController(controllerName).needsLogging
+    pbikControllerConfig.paramsForController(controllerName).needsLogging
 }
 
-object PbikAuditFilter extends AuditFilter with AppName with MicroserviceFilterSupport with RunModeConfig {
+class PbikAuditFilter @Inject()(
+                                 pbikControllerConfig: PbikControllerConfig,
+                                 configuration: Configuration
+                               ) extends AuditFilter with AppName with MicroserviceFilterSupport with RunModeConfig {
+  //TODO Inject
   override def auditConnector: AuditConnector = PbikAuditConnector
+
   override def controllerNeedsAuditing(controllerName: String): Boolean =
-    PbikControllerConfig.paramsForController(controllerName).needsAuditing
-  override protected def appNameConfiguration: Configuration = Play.current.configuration
+    pbikControllerConfig.paramsForController(controllerName).needsAuditing
+
+  override protected def appNameConfiguration: Configuration = configuration
 }
 
-object PbikAuthFilter extends AuthorisationFilter with MicroserviceFilterSupport {
-  override def authConnector: AuthConnector = PbikAuthConnector
-  override def authParamsConfig: AuthParamsControllerConfig = PbikAuthControllerConfig
+class PbikAuthFilter @Inject()(
+                                val authConnector: PbikAuthConnector,
+                                val authParamsConfig: PbikAuthControllerConfig,
+                                pbikControllerConfig: PbikControllerConfig
+                              ) extends AuthorisationFilter with MicroserviceFilterSupport {
   override def controllerNeedsAuth(controllerName: String): Boolean =
-    PbikControllerConfig.paramsForController(controllerName).needsAuth
+    pbikControllerConfig.paramsForController(controllerName).needsAuth
 }

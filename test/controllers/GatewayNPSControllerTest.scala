@@ -18,25 +18,25 @@ package controllers
 
 import connectors.HmrcTierConnectorWrapped
 import controllers.utils.ControllerUtilsWrapped
+import helper.MaterializerSupport
 import models.PbikCredentials
+import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.specs2.mock.mockito.MockitoMatchers
+import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import play.api.Application
+import play.api.http.HttpEntity._
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{AnyContent, Request}
 import play.api.test.Helpers.{await, _}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.config.ServicesConfig
-import play.api.http.HttpEntity._
 
 import scala.concurrent.Future
-import helper.MaterializerSupport
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
-class GatewayNPSControllerTest extends PlaySpec with OneServerPerSuite with MockitoSugar with MockitoMatchers
+class GatewayNPSControllerTest extends PlaySpec with OneServerPerSuite with MockitoSugar
       with FakePBIKApplication with MaterializerSupport {
 
   implicit lazy override val app: Application = new GuiceApplicationBuilder()
@@ -65,9 +65,10 @@ class GatewayNPSControllerTest extends PlaySpec with OneServerPerSuite with Mock
           Future[Option[Map[String, String]]] = Future.successful(Some(Map.empty[String,String]))
   }
 
-  class StubbedGateway extends GatewayNPSController with StubServicesConfig {
+  val tierConnector = mock[HmrcTierConnectorWrapped]
+
+  class StubbedGateway extends GatewayNPSController(tierConnector) with StubServicesConfig {
     override val controllerUtils = new StubbedControllerWrapped
-    override val tierConnector = mock[HmrcTierConnectorWrapped]
 
     when(tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier])).thenReturn(Future.successful(new FakeResponse))
     when(tierConnector.retrieveDataPost(any[Map[String,String]],anyString, any[JsValue])(any[HeaderCarrier])).thenReturn(Future.successful(new FakeResponse))

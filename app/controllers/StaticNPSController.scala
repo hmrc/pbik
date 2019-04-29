@@ -16,8 +16,9 @@
 
 package controllers
 
+import com.google.inject.Inject
 import config.RunModeConfig
-import connectors.HmrcTierConnector
+import connectors.HmrcTierConnectorWrapped
 import controllers.utils.ControllerUtils
 import models.PbikCredentials
 import play.api.libs.json.Json
@@ -25,7 +26,7 @@ import play.api.mvc.Action
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 
-class StaticNPSController extends BaseController with ControllerUtils  with HmrcTierConnector with RunModeConfig{
+class StaticNPSController @Inject()(tierConnector:HmrcTierConnectorWrapped) extends BaseController with ControllerUtils with RunModeConfig{
 
   implicit val formats = Json.format[PbikCredentials]
 

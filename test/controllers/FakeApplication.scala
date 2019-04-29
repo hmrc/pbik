@@ -16,9 +16,9 @@
 
 package controllers
 
-import org.scalatest.Suite
 import java.util.UUID
 
+import org.scalatest.Suite
 import play.api.test.FakeRequest
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 
