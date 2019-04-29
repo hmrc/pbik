@@ -16,8 +16,9 @@
 
 package controllers
 
+import com.google.inject.Inject
 import config.RunModeConfig
-import connectors.HmrcTierConnector
+import connectors.HmrcTierConnectorWrapped
 import controllers.utils.ControllerUtils
 import models.PbikCredentials
 import play.api.libs.json.Json
@@ -29,7 +30,7 @@ import uk.gov.hmrc.time.TaxYear
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class GatewayNPSController extends BaseController with ControllerUtils with HmrcTierConnector with RunModeConfig{
+class GatewayNPSController @Inject()(tierConnector:HmrcTierConnectorWrapped) extends BaseController with ControllerUtils with RunModeConfig{
 
 
   val NO_HEADERS = Map[String,String]()

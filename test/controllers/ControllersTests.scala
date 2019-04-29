@@ -19,27 +19,24 @@ package controllers
 import _root_.play.api.test.FakeRequest
 import connectors.HmrcTierConnectorWrapped
 import controllers.utils.ControllerUtilsWrapped
-import models.{HeaderTags, PbikCredentials}
-import org.scalatest.mock.MockitoSugar
-import org.specs2.mock.mockito.MockitoMatchers
-import play.api.libs.json.Json
-import play.api.libs.ws.WSResponse
-import play.api.mvc.{AnyContent, Request}
-import play.api.test.Helpers._
-import uk.gov.hmrc.play.test.UnitSpec
-import uk.gov.hmrc.time.TaxYear
-import org.mockito.Mockito._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import helper.MaterializerSupport
+import models.{HeaderTags, PbikCredentials}
+import org.mockito.Matchers._
+import org.mockito.Mockito._
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.Application
 import play.api.http.HttpEntity.Strict
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.mvc.{AnyContent, Request}
+import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.time.TaxYear
 
-class ControllersTests extends PlaySpec with OneServerPerSuite with MockitoSugar with MockitoMatchers
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+class ControllersTests extends PlaySpec with OneServerPerSuite with MockitoSugar
       with FakePBIKApplication with MaterializerSupport {
 
   implicit lazy override val app: Application = new GuiceApplicationBuilder()
@@ -55,19 +52,18 @@ class ControllersTests extends PlaySpec with OneServerPerSuite with MockitoSugar
   val ibdtype = 39
   val year = TaxYear.current.currentYear+1
 
-  class MockNPSController extends GatewayNPSController with HttpResponse {
+  class MockNPSController extends GatewayNPSController(tierConnector = mock[HmrcTierConnectorWrapped]) with HttpResponse {
 
     val mockControllerUtils = mock[ControllerUtilsWrapped]
-    when(mockControllerUtils.retrieveNPSCredentials(any, anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any)).thenReturn(Future(mockCredentials))
+    when(mockControllerUtils.retrieveNPSCredentials(any(), anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any())).thenReturn(Future(mockCredentials))
     when(mockControllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]], any[HeaderCarrier])).thenReturn(Future(Some(mockMutators)))
 
     override lazy val baseURL: String = ""
     override val controllerUtils = mockControllerUtils
-    override val tierConnector = mock[HmrcTierConnectorWrapped]
 
     val mockHeaders = Map[String, String]()
 
-    when(mockControllerUtils.generateResultBasedOnStatus(any)(any, any, any)).thenReturn(
+    when(mockControllerUtils.generateResultBasedOnStatus(any())(any(), any(), any())).thenReturn(
       Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
   }
 

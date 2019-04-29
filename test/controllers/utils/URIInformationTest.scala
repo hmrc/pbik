@@ -17,14 +17,13 @@
 package controllers.utils
 
 import controllers.FakePBIKApplication
-import org.scalatest.mock.MockitoSugar
-import org.specs2.mock.mockito.MockitoMatchers
+import org.scalatest.mockito.MockitoSugar
 import play.api.test.FakeApplication
+import play.api.test.Helpers._
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.test.UnitSpec
-import play.api.test.Helpers._
 
-class URIInformationTest extends UnitSpec with MockitoSugar with MockitoMatchers with FakePBIKApplication {
+class URIInformationTest extends UnitSpec with MockitoSugar with FakePBIKApplication {
 
   trait StubServicesConfig extends ServicesConfig {
     override def baseUrl(serviceName:String) = "http://nps:80"

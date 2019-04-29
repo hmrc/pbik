@@ -14,7 +14,6 @@
  * limitations under the License.
 */
 
-import play.core.PlayVersion
 import play.sbt.PlayImport._
 import sbt._
 
@@ -29,8 +28,7 @@ object AppDependencies {
   val test: Seq[ModuleID] = Seq(
       "uk.gov.hmrc" %% "hmrctest" % "3.6.0-play-25",
       "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1",
-      "org.specs2" % "specs2_2.10" % "2.3.13",
-      "com.typesafe.play" %% "play-test" % PlayVersion.current,
+      "org.mockito" % "mockito-all" % "1.10.19",
       "uk.gov.hmrc" %% "tax-year" % "0.5.0"
   ).map(_ % "test")
 

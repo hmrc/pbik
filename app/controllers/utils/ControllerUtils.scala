@@ -16,23 +16,19 @@
 
 package controllers.utils
 
+import java.net.URLDecoder
+
 import connectors.HmrcTierConnectorWrapped
 import models.{EiLPerson, HeaderTags, PbikCredentials, PbikError}
 import play.api.Logger
-import play.api.i18n.Messages
 import play.api.libs.json
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Request, Result}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import java.net.URLDecoder
-
-import config.RunModeConfig
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 trait ControllerUtils extends URIInformation {
   val controllerUtils = new ControllerUtilsWrapped()
