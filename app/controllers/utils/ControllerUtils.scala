@@ -31,7 +31,6 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-//TODO needs auth
 class ControllerUtils @Inject()(environment: Environment,
                                 val runModeConfiguration: Configuration) extends URIInformation {
 
