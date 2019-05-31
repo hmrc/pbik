@@ -93,7 +93,7 @@ class GatewayNPSController @Inject()(val tierConnector: HmrcTierConnectorWrapped
   def updateExclusionsForEmployer(empRef: String, year: Int, ibdtype: Int): Action[AnyContent] = authenticate.async {
     implicit request =>
       controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
-        val url = s"${controllerUtils.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}/${credentials.payeSequenceNumber}/$ibdtype/$controllerUtils.addExclusionPath"
+        val url = s"${controllerUtils.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}/${credentials.payeSequenceNumber}/$ibdtype/${controllerUtils.addExclusionPath}"
         controllerUtils.getNPSMutatorSessionHeader flatMap { res =>
 
           val headers = res.getOrElse(Map[String, String]())
