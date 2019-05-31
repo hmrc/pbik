@@ -51,10 +51,6 @@ class StaticNPSControllerSpec extends PlaySpec with MockitoSugar
     override val body: String = sampleBikJson
   }
 
-//  trait StubServicesConfig extends ServicesConfig {
-//    override def baseUrl(serviceName:String) = "https:9000"
-//  }
-
   val staticNPSController: StaticNPSController = {
     val snc = app.injector.instanceOf[StaticNPSController]
     when(snc.tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier])).thenReturn(Future.successful(new FakeResponse))

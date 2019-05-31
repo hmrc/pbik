@@ -53,10 +53,6 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar
     override val body: String = sampleBikJson
   }
 
-  //  trait StubServicesConfig extends ServicesConfig {
-  //    override def baseUrl(serviceName:String) = "https:9000"
-  //  }
-
   val StubbedGateway: GatewayNPSController = {
 
     val gnc = app.injector.instanceOf[GatewayNPSController]
