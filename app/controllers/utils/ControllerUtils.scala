@@ -19,22 +19,23 @@ package controllers.utils
 import java.net.URLDecoder
 
 import connectors.HmrcTierConnectorWrapped
+import javax.inject.Inject
 import models.{EiLPerson, HeaderTags, PbikCredentials, PbikError}
-import play.api.Logger
 import play.api.libs.json
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Request, Result}
+import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait ControllerUtils extends URIInformation {
-  val controllerUtils = new ControllerUtilsWrapped()
-}
+//TODO needs auth
+class ControllerUtils @Inject()(environment: Environment,
+                                val runModeConfiguration: Configuration) extends URIInformation {
 
-class ControllerUtilsWrapped() extends URIInformation {
+  val mode = environment.mode
 
   val credentialsId: String = "pbik-credentials-id"
   private val appStatusMessageRegex = "[0-9]+"
@@ -126,9 +127,7 @@ class ControllerUtilsWrapped() extends URIInformation {
     (paye_scheme_type,employer_number)
   }
 
-
   def retrieveCrendtialsFromNPS(tierConnector: HmrcTierConnectorWrapped, year: Int, employer_code: String, paye_scheme_type: Int)(implicit request: Request[AnyContent], hc: HeaderCarrier, formats: json.Format[PbikCredentials]): Future[PbikCredentials] = {
-
     tierConnector.retrieveDataGet(s"$baseURL/$year/$employer_code/$paye_scheme_type")(hc) map {
       result: HttpResponse => {
         result.json.validate[PbikCredentials].asOpt.get
@@ -142,11 +141,11 @@ class ControllerUtilsWrapped() extends URIInformation {
         (HeaderTags.ETAG, request.headers.get(HeaderTags.ETAG).getOrElse("0")),
         (HeaderTags.X_TXID, request.headers.get(HeaderTags.X_TXID).getOrElse("1"))
       ))
-    } else {None}
+    } else None
 
-    Future(pbikHeaders)
+    Future.successful(pbikHeaders)
   }
 
-  def decode(encodedEmpRef: String) = URLDecoder.decode(encodedEmpRef, "UTF-8")
+  def decode(encodedEmpRef: String): String = URLDecoder.decode(encodedEmpRef, "UTF-8")
 
 }

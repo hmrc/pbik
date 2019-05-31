@@ -17,22 +17,22 @@
 package controllers
 
 import com.google.inject.Inject
-import config.RunModeConfig
 import connectors.HmrcTierConnectorWrapped
 import controllers.utils.ControllerUtils
-import models.PbikCredentials
-import play.api.libs.json.Json
-import play.api.mvc.Action
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import play.api.Mode.Mode
+import play.api.mvc.{Action, AnyContent}
+import play.api.{Configuration, Environment}
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
+class StaticNPSController @Inject()(val tierConnector:HmrcTierConnectorWrapped,
+                                    val runModeConfiguration: Configuration,
+                                    environment: Environment,
+                                    controllerUtils: ControllerUtils) extends BaseController {
+  val mode: Mode = environment.mode
 
-class StaticNPSController @Inject()(tierConnector:HmrcTierConnectorWrapped) extends BaseController with ControllerUtils with RunModeConfig{
-
-  implicit val formats = Json.format[PbikCredentials]
-
-  def getBenefitTypes(year: Int) = Action.async {
+  def getBenefitTypes(year: Int): Action[AnyContent] = Action.async {
     implicit request =>
-      val url = s"$baseURL/$year/$getBenefitTypesPath"
+      val url = s"${controllerUtils.baseURL}/$year/${controllerUtils.getBenefitTypesPath}"
       controllerUtils.generateResultBasedOnStatus(tierConnector.retrieveDataGet(url)(hc))
   }
 

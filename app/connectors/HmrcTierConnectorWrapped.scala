@@ -16,21 +16,21 @@
 
 package connectors
 
-import config.{RunModeConfig, WSHttp}
 import javax.inject.Inject
-import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
+import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Try
 
-class HmrcTierConnectorWrapped @Inject()(val http:WSHttp) extends ServicesConfig with RunModeConfig {
+class HmrcTierConnectorWrapped @Inject()(val http:HttpClient,
+                                         environment: Environment,
+                                         configuration: Configuration) {
 
-  val serviceOriginatorIdKey = Try{getConfString("nps.originatoridkey", "")}.getOrElse("")
-  val serviceOriginatorId = Try{getConfString("nps.originatoridvalue", "")}.getOrElse("")
+  val serviceOriginatorIdKey = configuration.getString("nps.originatoridkey").getOrElse("")
+  val serviceOriginatorId = configuration.getString("nps.originatoridvalue").getOrElse("")
 
   def retrieveDataGet(url: String)(hc:HeaderCarrier): Future[HttpResponse] = {
     implicit val hcextra = hc.withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
