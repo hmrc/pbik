@@ -19,9 +19,12 @@ package controllers
 import java.util.UUID
 
 import akka.stream.Materializer
+import controllers.actions.MinimalAuthAction
+import helper.TestMinimalAuthAction
 import org.scalatest.TestSuite
 import org.scalatestplus.play.OneAppPerSuite
 import play.api.Application
+import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
@@ -55,6 +58,7 @@ trait FakePBIKApplication extends OneAppPerSuite {
   override lazy val fakeApplication: Application = GuiceApplicationBuilder(
     disabled = Seq(classOf[com.kenshoo.play.metrics.PlayModule])
   ).configure(config)
+    .overrides(bind(classOf[MinimalAuthAction]).to(classOf[TestMinimalAuthAction]))
     .build()
 
   implicit lazy val materializer: Materializer = fakeApplication.materializer

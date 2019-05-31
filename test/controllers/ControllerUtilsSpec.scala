@@ -111,15 +111,6 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
     }
   }
 
-  "The validation url generator" should {
-    "Generate valid url" in {
-
-      val result = mockControllerUtils.generateURLBasedOnCredentials(mockCredentials,year, mockedBaseUrl,urlExtension)
-      result must be("baseUrl/2014/1/2/3/urlExtension")
-
-    }
-  }
-
   "The controller utils " should {
   "return valid credentials when a valid empref is supplied " in {
     val result = await(mockControllerUtils.retrieveNPSCredentials(mockTierConnector,2015,"123/TEST1"))

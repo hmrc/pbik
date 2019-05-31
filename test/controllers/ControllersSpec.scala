@@ -18,8 +18,9 @@ package controllers
 
 import _root_.play.api.test.FakeRequest
 import connectors.HmrcTierConnectorWrapped
+import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
-import helper.CYEnabledSetup
+import helper.{CYEnabledSetup, TestMinimalAuthAction}
 import models.{HeaderTags, PbikCredentials}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
@@ -44,6 +45,7 @@ class ControllersSpec extends PlaySpec with MockitoSugar
     .configure(config)
     .overrides(bind(classOf[HmrcTierConnectorWrapped]).toInstance(mock[HmrcTierConnectorWrapped]))
     .overrides(bind(classOf[ControllerUtils]).toInstance(mock[ControllerUtils]))
+    .overrides(bind(classOf[MinimalAuthAction]).to(classOf[TestMinimalAuthAction]))
     .build()
 
   val mockCredentials: PbikCredentials = mock[PbikCredentials]

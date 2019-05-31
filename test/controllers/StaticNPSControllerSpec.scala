@@ -17,8 +17,9 @@
 package controllers
 
 import connectors.HmrcTierConnectorWrapped
+import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
-import helper.StubbedControllerUtils
+import helper.{StubbedControllerUtils, TestMinimalAuthAction}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
@@ -40,6 +41,7 @@ class StaticNPSControllerSpec extends PlaySpec with MockitoSugar
     .configure(config)
     .overrides(bind(classOf[HmrcTierConnectorWrapped]).toInstance(mock[HmrcTierConnectorWrapped]))
     .overrides(bind(classOf[ControllerUtils]).to(classOf[StubbedControllerUtils]))
+    .overrides(bind(classOf[MinimalAuthAction]).to(classOf[TestMinimalAuthAction]))
     .build()
 
   class FakeResponse extends HttpResponse {

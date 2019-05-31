@@ -19,6 +19,7 @@ package helper
 import com.google.inject.AbstractModule
 import config.PbikConfig
 import connectors.HmrcTierConnectorWrapped
+import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
 import org.mockito.Mockito.mock
 import org.specs2.specification.Scope
@@ -31,6 +32,7 @@ trait CYEnabledSetup extends Scope {
       bind(classOf[HmrcTierConnectorWrapped]).toInstance(mock(classOf[HmrcTierConnectorWrapped]))
       bind(classOf[ControllerUtils]).toInstance(mock(classOf[ControllerUtils]))
       bind(classOf[PbikConfig]).toInstance(mock(classOf[PbikConfig]))
+      bind(classOf[MinimalAuthAction]).to(classOf[TestMinimalAuthAction])
     }
   }
 

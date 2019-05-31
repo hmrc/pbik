@@ -18,6 +18,7 @@ package controllers
 
 import com.google.inject.Inject
 import connectors.HmrcTierConnectorWrapped
+import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
 import play.api.Mode.Mode
 import play.api.mvc.{Action, AnyContent}
@@ -26,11 +27,12 @@ import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 class StaticNPSController @Inject()(val tierConnector:HmrcTierConnectorWrapped,
                                     val runModeConfiguration: Configuration,
+                                    authenticate: MinimalAuthAction,
                                     environment: Environment,
                                     controllerUtils: ControllerUtils) extends BaseController {
   val mode: Mode = environment.mode
 
-  def getBenefitTypes(year: Int): Action[AnyContent] = Action.async {
+  def getBenefitTypes(year: Int): Action[AnyContent] = authenticate.async {
     implicit request =>
       val url = s"${controllerUtils.baseURL}/$year/${controllerUtils.getBenefitTypesPath}"
       controllerUtils.generateResultBasedOnStatus(tierConnector.retrieveDataGet(url)(hc))
