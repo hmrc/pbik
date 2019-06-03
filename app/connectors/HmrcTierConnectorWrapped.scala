@@ -29,11 +29,11 @@ class HmrcTierConnectorWrapped @Inject()(val http:HttpClient,
                                          environment: Environment,
                                          configuration: Configuration) {
 
-  val serviceOriginatorIdKey = configuration.getString("nps.originatoridkey").getOrElse("")
-  val serviceOriginatorId = configuration.getString("nps.originatoridvalue").getOrElse("")
+  val serviceOriginatorIdKey: String = configuration.getString("nps.originatoridkey").getOrElse("")
+  val serviceOriginatorId: String = configuration.getString("nps.originatoridvalue").getOrElse("")
 
   def retrieveDataGet(url: String)(hc:HeaderCarrier): Future[HttpResponse] = {
-    implicit val hcextra = hc.withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
+    implicit val hcextra: HeaderCarrier = hc.withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
     http.GET(url).recover{
       case e => {
         Logger.warn("retrieveDataGet Failed, " + e)
@@ -43,7 +43,7 @@ class HmrcTierConnectorWrapped @Inject()(val http:HttpClient,
  }
 
   def retrieveDataPost(headers: Map[String,String], url: String, requestBody: JsValue)(hac:HeaderCarrier): Future[HttpResponse] = {
-    implicit val hcextra = hac.withExtraHeaders(headers.toSeq: _*).withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
+    implicit val hcextra: HeaderCarrier = hac.withExtraHeaders(headers.toSeq: _*).withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
     http.POST(url,requestBody).recover{
       case e => {
         Logger.warn("retrieveDataPost Failed, " + e)
