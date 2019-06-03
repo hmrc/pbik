@@ -16,20 +16,21 @@
 
 package controllers.utils
 
-import config.RunModeConfig
 import uk.gov.hmrc.play.config.ServicesConfig
 
-trait URIInformation extends ServicesConfig with RunModeConfig {
+trait URIInformation extends ServicesConfig {
 
   val getBenefitTypesPath = "getbenefittypes"
   val updateBenefitTypesPath = "update"
   val exclusionPath = "exclusion"
   val addExclusionPath = "exclusion/update"
   val removeExclusionPath ="exclusion/remove"
+
   // serviceUrl - the base URL, on which the service status call is hosted
-  // baseUrl - the base URL, on which the service status call is hosted
   lazy val serviceUrl: String = baseUrl("nps") + "/nps-hod-service/services/nps"
-  lazy val baseURL: String = System.getProperty("OverridePbikUrl", baseUrl("nps") + "/nps-hod-service/services/nps") + "/employer/payroll-bik"
+
+  // baseUrl - the base URL, on which the service status call is hosted
+  lazy val baseURL: String = baseUrl("nps") + "/nps-hod-service/services/nps/employer/payroll-bik"
   val statusPath = "ServiceStatus"
 
 }

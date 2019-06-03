@@ -18,19 +18,29 @@ package controllers
 
 import java.util.UUID
 
-import org.scalatest.Suite
+import akka.stream.Materializer
+import controllers.actions.MinimalAuthAction
+import helper.TestMinimalAuthAction
+import org.scalatest.TestSuite
+import org.scalatestplus.play.OneAppPerSuite
+import play.api.Application
+import play.api.inject._
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 
-trait FakePBIKApplication {
-  this: Suite =>
+trait FakePBIKApplication extends OneAppPerSuite {
+
+  this: TestSuite =>
+
   val config: Map[String, Any] = Map("application.secret" -> "Its secret",
     "csrf.sign.tokens" -> false,
     "microservice.services.contact-frontend.host" -> "localhost",
     "microservice.services.contact-frontend.port" -> "9250",
     "sessionId" -> "a-session-id")
 
-  val sampleBikJson =
+  val sampleBikJson: String =
     """[
       |{"iabdType" : "30", "status" : 10, "eilCount" : 0},
       |{"iabdType" : "31", "status" : 10, "eilCount" : 0},
@@ -38,10 +48,18 @@ trait FakePBIKApplication {
       |]
     """.stripMargin
 
-  def mockrequest = FakeRequest().withSession(
+  def mockrequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withSession(
     SessionKeys.sessionId -> s"session-${UUID.randomUUID}",
     SessionKeys.token -> "RANDOMTOKEN",
     SessionKeys.userId -> "test-user-id")
 
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+
+  override lazy val fakeApplication: Application = GuiceApplicationBuilder(
+    disabled = Seq(classOf[com.kenshoo.play.metrics.PlayModule])
+  ).configure(config)
+    .overrides(bind(classOf[MinimalAuthAction]).to(classOf[TestMinimalAuthAction]))
+    .build()
+
+  implicit lazy val materializer: Materializer = fakeApplication.materializer
 }

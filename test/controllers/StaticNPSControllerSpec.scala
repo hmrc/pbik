@@ -17,66 +17,52 @@
 package controllers
 
 import connectors.HmrcTierConnectorWrapped
-import controllers.utils.ControllerUtilsWrapped
-import helper.MaterializerSupport
+import controllers.actions.MinimalAuthAction
+import controllers.utils.ControllerUtils
+import helper.{StubbedControllerUtils, TestMinimalAuthAction}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import org.scalatestplus.play.PlaySpec
 import play.api.Application
 import play.api.http.HttpEntity.Strict
+import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.Future
 
-class StaticNPSControllerTest extends PlaySpec with OneServerPerSuite with MockitoSugar
-       with FakePBIKApplication with MaterializerSupport{
+class StaticNPSControllerSpec extends PlaySpec with MockitoSugar
+       with FakePBIKApplication {
 
   implicit lazy override val app: Application = new GuiceApplicationBuilder()
     .configure(config)
+    .overrides(bind(classOf[HmrcTierConnectorWrapped]).toInstance(mock[HmrcTierConnectorWrapped]))
+    .overrides(bind(classOf[ControllerUtils]).to(classOf[StubbedControllerUtils]))
+    .overrides(bind(classOf[MinimalAuthAction]).to(classOf[TestMinimalAuthAction]))
     .build()
 
   class FakeResponse extends HttpResponse {
-    override val allHeaders = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
+    override val allHeaders: Map[String, Seq[String]] = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
     override def status = 200
-    override val json = Json.parse(sampleBikJson)
-    override val body = sampleBikJson
-
+    override val json: JsValue = Json.parse(sampleBikJson)
+    override val body: String = sampleBikJson
   }
 
-  trait StubServicesConfig extends ServicesConfig {
-    override def baseUrl(serviceName:String) = "https:9000"
-  }
-
-  // Stub this so we don't need to mock all the methods
-  class StubbedControllerWrapped extends ControllerUtilsWrapped {
-
-  }
-
-  val tierConnector = mock[HmrcTierConnectorWrapped]
-  val staticNPSController = new StaticNPSController(tierConnector) with StubServicesConfig {
-    override val controllerUtils = new StubbedControllerWrapped
-
-
-
-    when(tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier])).thenReturn(Future.successful(new FakeResponse))
+  val staticNPSController: StaticNPSController = {
+    val snc = app.injector.instanceOf[StaticNPSController]
+    when(snc.tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier])).thenReturn(Future.successful(new FakeResponse))
+    snc
   }
 
   "When getting Benefits Types the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
-      running(app) {
         val CY = 2015
-        val result = await(staticNPSController.getBenefitTypes(CY).apply(mockrequest))
+        val result = await(staticNPSController.getBenefitTypes(CY)(mockrequest))
         result.header.status must be(OK)
         result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
-
-        //status(result) shouldBe(200)
-        //bodyOf(result) shouldBe(sampleBikJson)
-      }
     }
   }
 
