@@ -18,7 +18,7 @@ package connectors
 
 import javax.inject.Inject
 import play.api.libs.json.{JsValue, Json}
-import play.api.{Configuration, Environment, Logger}
+import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -26,7 +26,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class HmrcTierConnectorWrapped @Inject()(val http:HttpClient,
-                                         environment: Environment,
                                          configuration: Configuration) {
 
   val serviceOriginatorIdKey: String = configuration.get[String]("microservice.services.nps.originatoridkey")

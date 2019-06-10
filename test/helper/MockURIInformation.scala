@@ -18,8 +18,7 @@ package helper
 
 import controllers.utils.URIInformation
 import javax.inject.Inject
-import play.api.Mode.Mode
-import play.api.{Configuration, Environment}
+import play.api.Configuration
 
 class MockURIInformation @Inject()(configuration: Configuration) extends URIInformation(configuration) {
   

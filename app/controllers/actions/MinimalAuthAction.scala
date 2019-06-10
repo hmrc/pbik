@@ -19,7 +19,7 @@ package controllers.actions
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import play.api.mvc.Results._
-import play.api.mvc.{ActionBuilder, ActionRefiner, AnyContent, BodyParsers, Request, Result}
+import play.api.mvc._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
