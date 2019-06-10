@@ -19,14 +19,16 @@ package controllers.actions
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import play.api.mvc.Results._
-import play.api.mvc.{ActionBuilder, ActionRefiner, Request, Result}
+import play.api.mvc.{ActionBuilder, ActionRefiner, AnyContent, BodyParsers, Request, Result}
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class MinimalAuthActionImpl @Inject()(val authConnector: AuthConnector)(implicit val ec:ExecutionContext) extends MinimalAuthAction with AuthorisedFunctions {
+class MinimalAuthActionImpl @Inject()(val authConnector: AuthConnector,
+                                      val parser: BodyParsers.Default)
+                                     (implicit val executionContext:ExecutionContext) extends MinimalAuthAction with AuthorisedFunctions {
   override protected def refine[A](request: Request[A]): Future[Either[Result, Request[A]]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
@@ -41,4 +43,4 @@ class MinimalAuthActionImpl @Inject()(val authConnector: AuthConnector)(implicit
 }
 
 @ImplementedBy(classOf[MinimalAuthActionImpl])
-trait MinimalAuthAction extends ActionBuilder[Request] with ActionRefiner[Request, Request]
+trait MinimalAuthAction extends ActionBuilder[Request, AnyContent] with ActionRefiner[Request, Request]

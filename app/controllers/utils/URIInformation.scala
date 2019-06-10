@@ -16,9 +16,12 @@
 
 package controllers.utils
 
-import uk.gov.hmrc.play.config.ServicesConfig
+import config.Service
+import javax.inject.Inject
+import play.api.Configuration
 
-trait URIInformation extends ServicesConfig {
+
+class URIInformation @Inject()(configuration: Configuration) {
 
   val getBenefitTypesPath = "getbenefittypes"
   val updateBenefitTypesPath = "update"
@@ -27,10 +30,10 @@ trait URIInformation extends ServicesConfig {
   val removeExclusionPath ="exclusion/remove"
 
   // serviceUrl - the base URL, on which the service status call is hosted
-  lazy val serviceUrl: String = baseUrl("nps") + "/nps-hod-service/services/nps"
+  lazy val serviceUrl: String = s"${configuration.get[Service]("microservice.services.nps")}/nps-hod-service/services/nps"
 
   // baseUrl - the base URL, on which the service status call is hosted
-  lazy val baseURL: String = baseUrl("nps") + "/nps-hod-service/services/nps/employer/payroll-bik"
+  lazy val baseURL: String = s"${configuration.get[Service]("microservice.services.nps")}/nps-hod-service/services/nps/employer/payroll-bik"
   val statusPath = "ServiceStatus"
 
 }

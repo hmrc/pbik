@@ -31,10 +31,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ControllerUtils @Inject()(environment: Environment,
-                                val runModeConfiguration: Configuration) extends URIInformation {
-
-  val mode = environment.mode
+class ControllerUtils @Inject()(configuration: Configuration) extends URIInformation(configuration) {
 
   val credentialsId: String = "pbik-credentials-id"
   private val appStatusMessageRegex = "[0-9]+"

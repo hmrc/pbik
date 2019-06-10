@@ -29,8 +29,8 @@ class HmrcTierConnectorWrapped @Inject()(val http:HttpClient,
                                          environment: Environment,
                                          configuration: Configuration) {
 
-  val serviceOriginatorIdKey: String = configuration.getString("nps.originatoridkey").getOrElse("")
-  val serviceOriginatorId: String = configuration.getString("nps.originatoridvalue").getOrElse("")
+  val serviceOriginatorIdKey: String = configuration.get[String]("microservice.services.nps.originatoridkey")
+  val serviceOriginatorId: String = configuration.get[String]("microservice.services.nps.originatoridvalue")
 
   def retrieveDataGet(url: String)(hc:HeaderCarrier): Future[HttpResponse] = {
     implicit val hcextra: HeaderCarrier = hc.withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)

@@ -20,17 +20,15 @@ import com.google.inject.Inject
 import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
-import play.api.Mode.Mode
-import play.api.mvc.{Action, AnyContent}
-import play.api.{Configuration, Environment}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import play.api.Configuration
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 class StaticNPSController @Inject()(val tierConnector:HmrcTierConnectorWrapped,
                                     val runModeConfiguration: Configuration,
                                     authenticate: MinimalAuthAction,
-                                    environment: Environment,
-                                    controllerUtils: ControllerUtils) extends BaseController {
-  val mode: Mode = environment.mode
+                                    controllerUtils: ControllerUtils,
+                                    cc: ControllerComponents) extends BackendController(cc) {
 
   def getBenefitTypes(year: Int): Action[AnyContent] = authenticate.async {
     implicit request =>

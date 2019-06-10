@@ -28,10 +28,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.Future
 
 // Stub this so we don't need to mock all the methods
-  class StubbedControllerUtils @Inject()(environment: Environment,
-                                         runModeConfiguration: Configuration) extends ControllerUtils(
-                                                                                      environment,
-                                                                                      runModeConfiguration)
+  class StubbedControllerUtils @Inject()(configuration: Configuration) extends ControllerUtils(configuration)
 {
 
     override def retrieveNPSCredentials(tierConnector: HmrcTierConnectorWrapped,year: Int, empRef:String)
