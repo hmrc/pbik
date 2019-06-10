@@ -21,6 +21,6 @@ import play.api.Configuration
 
 class PbikConfig @Inject()(configuration: Configuration) {
 
-  val cyEnabled: Boolean = configuration.getBoolean("cymode.enabled").getOrElse(false)
+  val cyEnabled: Boolean = configuration.get[Boolean]("cymode.enabled")
 
 }

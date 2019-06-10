@@ -25,7 +25,7 @@ import models.PbikCredentials
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.{Configuration, Environment, Logger}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.time.TaxYear
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,7 +36,8 @@ class GatewayNPSController @Inject()(val tierConnector: HmrcTierConnectorWrapped
                                      authenticate: MinimalAuthAction,
                                      val runModeConfiguration: Configuration,
                                      environment: Environment,
-                                     val controllerUtils: ControllerUtils) extends BaseController {
+                                     val controllerUtils: ControllerUtils,
+                                     cc: ControllerComponents) extends BackendController(cc) {
 
   val NO_HEADERS: Map[String, String] = Map[String, String]()
 

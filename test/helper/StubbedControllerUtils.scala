@@ -20,18 +20,15 @@ import connectors.HmrcTierConnectorWrapped
 import controllers.utils.ControllerUtils
 import javax.inject.Inject
 import models.PbikCredentials
+import play.api.Configuration
 import play.api.libs.json
 import play.api.mvc.{AnyContent, Request}
-import play.api.{Configuration, Environment}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 // Stub this so we don't need to mock all the methods
-  class StubbedControllerUtils @Inject()(environment: Environment,
-                                         runModeConfiguration: Configuration) extends ControllerUtils(
-                                                                                      environment,
-                                                                                      runModeConfiguration)
+  class StubbedControllerUtils @Inject()(configuration: Configuration) extends ControllerUtils(configuration)
 {
 
     override def retrieveNPSCredentials(tierConnector: HmrcTierConnectorWrapped,year: Int, empRef:String)

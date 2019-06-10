@@ -18,15 +18,12 @@ package helper
 
 import controllers.utils.URIInformation
 import javax.inject.Inject
-import play.api.Mode.Mode
-import play.api.{Configuration, Environment}
+import play.api.Configuration
 
-class MockURIInformation @Inject()(val runModeConfiguration: Configuration,
-                                   environment: Environment) extends URIInformation {
+class MockURIInformation @Inject()(configuration: Configuration) extends URIInformation(configuration) {
   
   val mockedBaseUrl = "baseUrl"
   override lazy val baseURL: String = mockedBaseUrl
   override lazy val serviceUrl: String = mockedBaseUrl
-  override protected def mode: Mode = environment.mode
 
 }

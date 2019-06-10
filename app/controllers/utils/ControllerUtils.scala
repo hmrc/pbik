@@ -25,16 +25,13 @@ import play.api.libs.json
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Request, Result}
-import play.api.{Configuration, Environment, Logger}
+import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ControllerUtils @Inject()(environment: Environment,
-                                val runModeConfiguration: Configuration) extends URIInformation {
-
-  val mode = environment.mode
+class ControllerUtils @Inject()(configuration: Configuration) extends URIInformation(configuration) {
 
   val credentialsId: String = "pbik-credentials-id"
   private val appStatusMessageRegex = "[0-9]+"
