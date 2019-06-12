@@ -18,6 +18,7 @@ package controllers.actions
 
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
+import play.api.Logger
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
@@ -36,8 +37,10 @@ class MinimalAuthActionImpl @Inject()(val authConnector: AuthConnector,
     authorised() {
       Future.successful(Right(request))
     }.recover {
-      case _ =>
+      case t:Throwable => {
+        Logger.debug("Debug info - " + t.getMessage)
         Left(Unauthorized)
+      }
     }
   }
 }
