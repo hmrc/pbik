@@ -108,5 +108,3 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
 [API]: https://en.wikipedia.org/wiki/Application_programming_interface
 [URL]: https://en.wikipedia.org/wiki/Uniform_Resource_Locator
 [JSON]: http://www.json.org/
-
-
