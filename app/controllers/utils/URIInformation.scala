@@ -20,20 +20,21 @@ import config.Service
 import javax.inject.Inject
 import play.api.Configuration
 
-
 class URIInformation @Inject()(configuration: Configuration) {
 
   val getBenefitTypesPath = "getbenefittypes"
   val updateBenefitTypesPath = "update"
   val exclusionPath = "exclusion"
   val addExclusionPath = "exclusion/update"
-  val removeExclusionPath ="exclusion/remove"
+  val removeExclusionPath = "exclusion/remove"
 
   // serviceUrl - the base URL, on which the service status call is hosted
-  lazy val serviceUrl: String = s"${configuration.get[Service]("microservice.services.nps")}/nps-hod-service/services/nps"
+  lazy val serviceUrl: String =
+    s"${configuration.get[Service]("microservice.services.nps")}/nps-hod-service/services/nps"
 
   // baseUrl - the base URL, on which the service status call is hosted
-  lazy val baseURL: String = s"${configuration.get[Service]("microservice.services.nps")}/nps-hod-service/services/nps/employer/payroll-bik"
+  lazy val baseURL: String =
+    s"${configuration.get[Service]("microservice.services.nps")}/nps-hod-service/services/nps/employer/payroll-bik"
   val statusPath = "ServiceStatus"
 
 }

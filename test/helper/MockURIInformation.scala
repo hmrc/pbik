@@ -21,7 +21,7 @@ import javax.inject.Inject
 import play.api.Configuration
 
 class MockURIInformation @Inject()(configuration: Configuration) extends URIInformation(configuration) {
-  
+
   val mockedBaseUrl = "baseUrl"
   override lazy val baseURL: String = mockedBaseUrl
   override lazy val serviceUrl: String = mockedBaseUrl

@@ -28,13 +28,15 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.Future
 
 // Stub this so we don't need to mock all the methods
-  class StubbedControllerUtils @Inject()(configuration: Configuration) extends ControllerUtils(configuration)
-{
+class StubbedControllerUtils @Inject()(configuration: Configuration) extends ControllerUtils(configuration) {
 
-    override def retrieveNPSCredentials(tierConnector: HmrcTierConnectorWrapped,year: Int, empRef:String)
-                              (implicit request: Request[AnyContent], hc: HeaderCarrier, formats: json.Format[PbikCredentials]):
-    Future[PbikCredentials] = Future.successful( new PbikCredentials(0,0,0,"","") )
+  override def retrieveNPSCredentials(tierConnector: HmrcTierConnectorWrapped, year: Int, empRef: String)(
+    implicit request: Request[AnyContent],
+    hc: HeaderCarrier,
+    formats: json.Format[PbikCredentials]): Future[PbikCredentials] =
+    Future.successful(new PbikCredentials(0, 0, 0, "", ""))
 
-    override def getNPSMutatorSessionHeader(implicit request: Request[AnyContent], hc: HeaderCarrier):
-          Future[Option[Map[String, String]]] = Future.successful(Some(Map.empty[String,String]))
-  }
+  override def getNPSMutatorSessionHeader(
+    implicit request: Request[AnyContent],
+    hc: HeaderCarrier): Future[Option[Map[String, String]]] = Future.successful(Some(Map.empty[String, String]))
+}

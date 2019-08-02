@@ -34,8 +34,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.Future
 
-class StaticNPSControllerSpec extends PlaySpec with MockitoSugar
-       with FakePBIKApplication {
+class StaticNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKApplication {
 
   implicit lazy override val app: Application = new GuiceApplicationBuilder()
     .configure(config)
@@ -53,16 +52,17 @@ class StaticNPSControllerSpec extends PlaySpec with MockitoSugar
 
   val staticNPSController: StaticNPSController = {
     val snc = app.injector.instanceOf[StaticNPSController]
-    when(snc.tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier])).thenReturn(Future.successful(new FakeResponse))
+    when(snc.tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier]))
+      .thenReturn(Future.successful(new FakeResponse))
     snc
   }
 
   "When getting Benefits Types the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
-        val CY = 2015
-        val result = await(staticNPSController.getBenefitTypes(CY)(mockrequest))
-        result.header.status must be(OK)
-        result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+      val CY = 2015
+      val result = await(staticNPSController.getBenefitTypes(CY)(mockrequest))
+      result.header.status must be(OK)
+      result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
     }
   }
 

@@ -25,25 +25,26 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class HmrcTierConnectorWrapped @Inject()(val http:HttpClient,
-                                         configuration: Configuration) {
+class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Configuration) {
 
   val serviceOriginatorIdKey: String = configuration.get[String]("microservice.services.nps.originatoridkey")
   val serviceOriginatorId: String = configuration.get[String]("microservice.services.nps.originatoridvalue")
 
-  def retrieveDataGet(url: String)(hc:HeaderCarrier): Future[HttpResponse] = {
+  def retrieveDataGet(url: String)(hc: HeaderCarrier): Future[HttpResponse] = {
     implicit val hcextra: HeaderCarrier = hc.withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
-    http.GET(url).recover{
+    http.GET(url).recover {
       case e => {
         Logger.warn("retrieveDataGet Failed, " + e)
         HttpResponse(200, Some(Json.toJson(e.getMessage)))
       }
     }
- }
+  }
 
-  def retrieveDataPost(headers: Map[String,String], url: String, requestBody: JsValue)(hac:HeaderCarrier): Future[HttpResponse] = {
-    implicit val hcextra: HeaderCarrier = hac.withExtraHeaders(headers.toSeq: _*).withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
-    http.POST(url,requestBody).recover{
+  def retrieveDataPost(headers: Map[String, String], url: String, requestBody: JsValue)(
+    hac: HeaderCarrier): Future[HttpResponse] = {
+    implicit val hcextra: HeaderCarrier =
+      hac.withExtraHeaders(headers.toSeq: _*).withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
+    http.POST(url, requestBody).recover {
       case e => {
         Logger.warn("retrieveDataPost Failed, " + e)
         HttpResponse(200, Some(Json.toJson(e.getMessage)))
