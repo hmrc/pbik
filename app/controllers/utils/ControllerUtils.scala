@@ -37,10 +37,10 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
   private val appStatusMessageRegex = "[0-9]+"
   val DEFAULT_ERROR = "10001"
 
-  def extractUpstreamError(message:String)(implicit request: Request[AnyContent]):String = {
-    val startindex:Int = message.indexOf("appStatusMessage")
-    val endindex:Int = message.indexOf(",", startindex)
-    if ( startindex >= 0 && endindex > startindex ) {
+  def extractUpstreamError(message: String)(implicit request: Request[AnyContent]): String = {
+    val startindex: Int = message.indexOf("appStatusMessage")
+    val endindex: Int = message.indexOf(",", startindex)
+    if (startindex >= 0 && endindex > startindex) {
       val appStatusMessageSegment = message.substring(startindex, endindex)
       Logger.info("An NPS error code has been detected " + appStatusMessageSegment)
 
@@ -51,16 +51,20 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
   }
 
   /**
-   * generates a play http Result based on the status of the WSResponse
-   * @param wsResponse
-   * @return
-   */
-  def generateResultBasedOnStatus(wsResponse: Future[HttpResponse])(implicit request: Request[AnyContent], hc: HeaderCarrier, formats: json.Reads[Map[String, String]]): Future[Result] = {
-    wsResponse.map {
-      response => response.status match {
-       case 200 => {
+    * generates a play http Result based on the status of the WSResponse
+    * @param wsResponse
+    * @return
+    */
+  def generateResultBasedOnStatus(wsResponse: Future[HttpResponse])(
+    implicit request: Request[AnyContent],
+    hc: HeaderCarrier,
+    formats: json.Reads[Map[String, String]]): Future[Result] =
+    wsResponse.map { response =>
+      response.status match {
+        case 200 => {
           if (response.body.contains("appStatusMessage")) {
-            Logger.warn("GenerateResultBasedOnStatus Response Failed status:" + response.status + " json:" + " body:" + response.body)
+            Logger.warn(
+              "GenerateResultBasedOnStatus Response Failed status:" + response.status + " json:" + " body:" + response.body)
 
             val msgValue = extractUpstreamError(response.body)
 
@@ -70,7 +74,9 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
           } else {
             // TODO - why does response.header("eTag") return Null when the Option should.. but Tests fail without it
             val headers: Map[String, String] = if (response.header(HeaderTags.ETAG) != null) {
-              Map(HeaderTags.ETAG -> response.header(HeaderTags.ETAG).getOrElse("0"), HeaderTags.X_TXID -> response.header(HeaderTags.X_TXID).getOrElse("1"))
+              Map(
+                HeaderTags.ETAG   -> response.header(HeaderTags.ETAG).getOrElse("0"),
+                HeaderTags.X_TXID -> response.header(HeaderTags.X_TXID).getOrElse("1"))
             } else {
               Map(("", ""))
             }
@@ -79,44 +85,55 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
           }
         }
         case _ => {
-          Logger.warn("GenerateResultBasedOnStatus Response Failed status:" + response.status + " json:" + " body:" + response.body + " request:" + request.body.asText)
+          Logger.warn(
+            "GenerateResultBasedOnStatus Response Failed status:" + response.status + " json:" + " body:" + response.body + " request:" + request.body.asText)
 
           new Status(response.status)(response.body)
         }
       }
     }
-  }
 
-  def createCompositeKey(employer_code: String, paye_scheme_type: Int): String = employer_code+"-"+paye_scheme_type
+  def createCompositeKey(employer_code: String, paye_scheme_type: Int): String = employer_code + "-" + paye_scheme_type
 
-  def retrieveNPSCredentials(tierConnector: HmrcTierConnectorWrapped,year: Int, empRef:String)(implicit request: Request[AnyContent], hc: HeaderCarrier, formats: json.Format[PbikCredentials]): Future[PbikCredentials] = {
+  def retrieveNPSCredentials(tierConnector: HmrcTierConnectorWrapped, year: Int, empRef: String)(
+    implicit request: Request[AnyContent],
+    hc: HeaderCarrier,
+    formats: json.Format[PbikCredentials]): Future[PbikCredentials] = {
 
     val keyparts = extractEmployerRefParts(empRef)
-    retrieveCrendtialsFromNPS(tierConnector, year, keyparts._1, keyparts._2 )
+    retrieveCrendtialsFromNPS(tierConnector, year, keyparts._1, keyparts._2)
 
   }
 
-  def extractEmployerRefParts(empRef:String):(String, Int) = {
+  def extractEmployerRefParts(empRef: String): (String, Int) = {
     val employerReferenceString = decode(empRef)
     val tokens = employerReferenceString.split("/")
     val employer_number = tokens(0).toInt
     val paye_scheme_type = tokens(1)
-    (paye_scheme_type,employer_number)
+    (paye_scheme_type, employer_number)
   }
 
-  def retrieveCrendtialsFromNPS(tierConnector: HmrcTierConnectorWrapped, year: Int, employer_code: String, paye_scheme_type: Int)(implicit request: Request[AnyContent], hc: HeaderCarrier, formats: json.Format[PbikCredentials]): Future[PbikCredentials] = {
-    tierConnector.retrieveDataGet(s"$baseURL/$year/$employer_code/$paye_scheme_type")(hc) map {
-      result: HttpResponse =>
-        result.json.validate[PbikCredentials].asOpt.get
+  def retrieveCrendtialsFromNPS(
+    tierConnector: HmrcTierConnectorWrapped,
+    year: Int,
+    employer_code: String,
+    paye_scheme_type: Int)(
+    implicit request: Request[AnyContent],
+    hc: HeaderCarrier,
+    formats: json.Format[PbikCredentials]): Future[PbikCredentials] =
+    tierConnector.retrieveDataGet(s"$baseURL/$year/$employer_code/$paye_scheme_type")(hc) map { result: HttpResponse =>
+      result.json.validate[PbikCredentials].asOpt.get
     }
-  }
 
-  def getNPSMutatorSessionHeader(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[Option[Map[String, String]]] = {
-    val pbikHeaders = if(request.headers.get(HeaderTags.ETAG).isDefined) {
-      Some(Map(
-        (HeaderTags.ETAG, request.headers.get(HeaderTags.ETAG).getOrElse("0")),
-        (HeaderTags.X_TXID, request.headers.get(HeaderTags.X_TXID).getOrElse("1"))
-      ))
+  def getNPSMutatorSessionHeader(
+    implicit request: Request[AnyContent],
+    hc: HeaderCarrier): Future[Option[Map[String, String]]] = {
+    val pbikHeaders = if (request.headers.get(HeaderTags.ETAG).isDefined) {
+      Some(
+        Map(
+          (HeaderTags.ETAG, request.headers.get(HeaderTags.ETAG).getOrElse("0")),
+          (HeaderTags.X_TXID, request.headers.get(HeaderTags.X_TXID).getOrElse("1"))
+        ))
     } else None
 
     Future.successful(pbikHeaders)

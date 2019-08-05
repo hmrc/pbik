@@ -51,7 +51,7 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
   val year = 2014
   val employer_number_code = "Mock-Employer-Number-Code"
   val paye_scheme_type = 1000
-  val mockedBaseUrl="baseUrl"
+  val mockedBaseUrl = "baseUrl"
   val urlExtension = "urlExtension"
 
   val mockCredentials = PbikCredentials(1, 2, 3, "aoReference", "payeSchemeOperatorName")
@@ -73,11 +73,10 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
   val mockHmrcTierConnectorWrapped: HmrcTierConnectorWrapped = mock[HmrcTierConnectorWrapped]
 
   val mockWSResponse: HttpResponse = mock[HttpResponse]
-  when(mockHmrcTierConnectorWrapped.retrieveDataGet(anyString())(anyObject())).thenReturn(Future.successful(mockWSResponse))
+  when(mockHmrcTierConnectorWrapped.retrieveDataGet(anyString())(anyObject()))
+    .thenReturn(Future.successful(mockWSResponse))
 
   when(mockWSResponse.json) thenReturn Json.toJson(mockCredentials)
-
-
 
   def mockControllerUtils: ControllerUtils = app.injector.instanceOf[ControllerUtils]
 
@@ -87,7 +86,9 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
   "The valid Credential check" should {
     "Return valid credentials from NPS" in {
       running(app) {
-        val result = await(mockControllerUtils.retrieveCrendtialsFromNPS(mockHmrcTierConnectorWrapped, year, employer_number_code, paye_scheme_type))
+        val result = await(
+          mockControllerUtils
+            .retrieveCrendtialsFromNPS(mockHmrcTierConnectorWrapped, year, employer_number_code, paye_scheme_type))
         result must be(mockCredentials)
       }
     }
@@ -96,7 +97,7 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
   "The status to response map" should {
     "Successfully return a response with status 200" in {
 
-      val result = await(mockControllerUtils.generateResultBasedOnStatus(Future{mockWsResponseStatus200}))
+      val result = await(mockControllerUtils.generateResultBasedOnStatus(Future { mockWsResponseStatus200 }))
       result.body.asInstanceOf[Strict].data.utf8String must be("Body of response with status 200")
 
     }
@@ -105,16 +106,16 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
   "The status to response map" should {
     "Successfully return a response with status 404" in {
 
-      val result = await(mockControllerUtils.generateResultBasedOnStatus(Future{mockWsResponseStatus404}))
+      val result = await(mockControllerUtils.generateResultBasedOnStatus(Future { mockWsResponseStatus404 }))
       result.body.asInstanceOf[Strict].data.utf8String must be("Body of response with status 404")
 
     }
   }
 
   "The controller utils " should {
-  "return valid credentials when a valid empref is supplied " in {
-    val result = await(mockControllerUtils.retrieveNPSCredentials(mockTierConnector,2015,"123/TEST1"))
-    assert(result.aoReference == "aoReference")
+    "return valid credentials when a valid empref is supplied " in {
+      val result = await(mockControllerUtils.retrieveNPSCredentials(mockTierConnector, 2015, "123/TEST1"))
+      assert(result.aoReference == "aoReference")
     }
   }
 
@@ -128,26 +129,29 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
 
   "The controller utils " should {
     "return valid credentials when parsing a marshalled Pbikcredentials object from json " in {
-      val result = await(mockControllerUtils.retrieveCrendtialsFromNPS(mockTierConnector,2015, "TEST1", 123))
+      val result = await(mockControllerUtils.retrieveCrendtialsFromNPS(mockTierConnector, 2015, "TEST1", 123))
       assert(result.aoReference == "aoReference")
     }
   }
 
   "The controller utils" should {
     "return error code when upstream error 63092" in {
-      val failedResponse = "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";63092\",\"requestUri\":\"\"}"
+      val failedResponse =
+        "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";63092\",\"requestUri\":\"\"}"
       val result = mockControllerUtils.extractUpstreamError(failedResponse)
       result must be("63092")
     }
 
     "return error code when upstream error 64989" in {
-      val failedResponse = "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";64989\",\"requestUri\":\"\"}"
+      val failedResponse =
+        "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";64989\",\"requestUri\":\"\"}"
       val result = mockControllerUtils.extractUpstreamError(failedResponse)
       result must be("64989")
     }
 
     "return default error code when upstream error not found" in {
-      val failedResponse = "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";Invalid version number\",\"requestUri\":\"\"}"
+      val failedResponse =
+        "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";Invalid version number\",\"requestUri\":\"\"}"
       val result = mockControllerUtils.extractUpstreamError(failedResponse)
       result must be("")
     }
@@ -158,7 +162,8 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
     "with headers return the ETAG and TXID headers" in {
 
       val npsRequestBody = Json.toJson(List.empty[String])
-      implicit val request: Request[AnyContent] = FakeRequest().withJsonBody(npsRequestBody)
+      implicit val request: Request[AnyContent] = FakeRequest()
+        .withJsonBody(npsRequestBody)
         .withHeaders(HeaderTags.ETAG -> "10", HeaderTags.X_TXID -> "1")
 
       val result = await(mockControllerUtils.getNPSMutatorSessionHeader(request, hc))
@@ -168,7 +173,8 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
     "return None when there is no ETAG value" in {
 
       val npsRequestBody = Json.toJson(List.empty[String])
-      implicit val request: Request[AnyContent] = FakeRequest().withJsonBody(npsRequestBody)
+      implicit val request: Request[AnyContent] = FakeRequest()
+        .withJsonBody(npsRequestBody)
         .withHeaders()
 
       val result = await(mockControllerUtils.getNPSMutatorSessionHeader(request, hc))

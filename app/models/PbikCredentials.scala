@@ -18,11 +18,12 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class PbikCredentials(payeSchemeType: Int,
-                           employerNumber: Int,
-                           payeSequenceNumber: Int,
-                           aoReference: String,
-                           payeSchemeOperatorName: String)
+case class PbikCredentials(
+  payeSchemeType: Int,
+  employerNumber: Int,
+  payeSequenceNumber: Int,
+  aoReference: String,
+  payeSchemeOperatorName: String)
 
 object PbikCredentials {
   implicit val formats: OFormat[PbikCredentials] = Json.format[PbikCredentials]

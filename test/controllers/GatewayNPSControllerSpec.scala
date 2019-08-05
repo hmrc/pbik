@@ -34,8 +34,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.Future
 
-class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar
-  with FakePBIKApplication {
+class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKApplication {
 
   implicit lazy override val app: Application = new GuiceApplicationBuilder()
     .configure(config)
@@ -57,8 +56,10 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar
 
     val gnc = app.injector.instanceOf[GatewayNPSController]
 
-    when(gnc.tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier])).thenReturn(Future.successful(new FakeResponse))
-    when(gnc.tierConnector.retrieveDataPost(any[Map[String, String]], anyString, any[JsValue])(any[HeaderCarrier])).thenReturn(Future.successful(new FakeResponse))
+    when(gnc.tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier]))
+      .thenReturn(Future.successful(new FakeResponse))
+    when(gnc.tierConnector.retrieveDataPost(any[Map[String, String]], anyString, any[JsValue])(any[HeaderCarrier]))
+      .thenReturn(Future.successful(new FakeResponse))
 
     gnc
   }

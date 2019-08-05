@@ -38,8 +38,7 @@ import uk.gov.hmrc.time.TaxYear
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ControllersSpec extends PlaySpec with MockitoSugar
-  with FakePBIKApplication with Results {
+class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplication with Results {
 
   implicit lazy override val app: Application = new GuiceApplicationBuilder()
     .configure(config)
@@ -61,12 +60,16 @@ class ControllersSpec extends PlaySpec with MockitoSugar
   val mockGatewayNPSController: GatewayNPSController = {
     val gnc: GatewayNPSController = app.injector.instanceOf[GatewayNPSController]
 
-    when(gnc.controllerUtils.retrieveNPSCredentials(any(), anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any())).thenReturn(Future(mockCredentials))
+    when(
+      gnc.controllerUtils
+        .retrieveNPSCredentials(any(), anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any()))
+      .thenReturn(Future(mockCredentials))
 
-    when(gnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]], any[HeaderCarrier])).thenReturn(Future(Some(mockMutators)))
+    when(gnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]], any[HeaderCarrier]))
+      .thenReturn(Future(Some(mockMutators)))
 
-    when(gnc.controllerUtils.generateResultBasedOnStatus(any())(any(), any(), any())).thenReturn(
-      Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
+    when(gnc.controllerUtils.generateResultBasedOnStatus(any())(any(), any(), any()))
+      .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
 
     gnc
   }
@@ -112,24 +115,28 @@ class ControllersSpec extends PlaySpec with MockitoSugar
 
   "When CY mode is enabled and a call is made to update a benefit for that year, the controller " should {
     "allow the call to proceed " in new CYEnabledSetup {
-     val injector: Injector = new GuiceApplicationBuilder()
+      val injector: Injector = new GuiceApplicationBuilder()
         .overrides(GuiceTestModule)
         .injector()
 
       val mockCYSupportedGatewayNPSController: GatewayNPSController = {
-    val mcysgnc = injector.instanceOf[GatewayNPSController]
+        val mcysgnc = injector.instanceOf[GatewayNPSController]
 
-    when(mcysgnc.controllerUtils.retrieveNPSCredentials(any(), anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any())).thenReturn(Future(mockCredentials))
+        when(
+          mcysgnc.controllerUtils
+            .retrieveNPSCredentials(any(), anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any()))
+          .thenReturn(Future(mockCredentials))
 
-    when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]], any[HeaderCarrier])).thenReturn(Future(Some(mockMutators)))
+        when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]], any[HeaderCarrier]))
+          .thenReturn(Future(Some(mockMutators)))
 
-    when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any(), any(), any())).thenReturn(
-      Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
+        when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any(), any(), any()))
+          .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
 
-    when(mcysgnc.configuration.cyEnabled).thenReturn(true)
+        when(mcysgnc.configuration.cyEnabled).thenReturn(true)
 
-    mcysgnc
-  }
+        mcysgnc
+      }
 
       val valid: Boolean = mockCYSupportedGatewayNPSController.cyCheck(TaxYear.current.currentYear)
       valid must be(true)
@@ -138,24 +145,28 @@ class ControllersSpec extends PlaySpec with MockitoSugar
 
   "When CY mode is enabled and a call is made to update the next year, the controller " should {
     "allow the call to proceed " in new CYEnabledSetup {
-val injector: Injector = new GuiceApplicationBuilder()
+      val injector: Injector = new GuiceApplicationBuilder()
         .overrides(GuiceTestModule)
         .injector()
 
-        val mockCYSupportedGatewayNPSController: GatewayNPSController = {
-    val mcysgnc = injector.instanceOf[GatewayNPSController]
+      val mockCYSupportedGatewayNPSController: GatewayNPSController = {
+        val mcysgnc = injector.instanceOf[GatewayNPSController]
 
-    when(mcysgnc.controllerUtils.retrieveNPSCredentials(any(), anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any())).thenReturn(Future(mockCredentials))
+        when(
+          mcysgnc.controllerUtils
+            .retrieveNPSCredentials(any(), anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any()))
+          .thenReturn(Future(mockCredentials))
 
-    when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]], any[HeaderCarrier])).thenReturn(Future(Some(mockMutators)))
+        when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]], any[HeaderCarrier]))
+          .thenReturn(Future(Some(mockMutators)))
 
-    when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any(), any(), any())).thenReturn(
-      Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
+        when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any(), any(), any()))
+          .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
 
-    when(mcysgnc.configuration.cyEnabled).thenReturn(true)
+        when(mcysgnc.configuration.cyEnabled).thenReturn(true)
 
-    mcysgnc
-  }
+        mcysgnc
+      }
 
       val valid: Boolean = mockCYSupportedGatewayNPSController.cyCheck(TaxYear.current.currentYear + 1)
       valid must be(true)

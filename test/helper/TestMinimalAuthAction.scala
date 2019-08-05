@@ -22,6 +22,8 @@ import play.api.mvc.{BodyParsers, Request, Result}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TestMinimalAuthAction @Inject()(val parser: BodyParsers.Default)(implicit val executionContext: ExecutionContext) extends MinimalAuthAction {
-  override protected def refine[A](request: Request[A]): Future[Either[Result, Request[A]]] = Future.successful(Right(request))
+class TestMinimalAuthAction @Inject()(val parser: BodyParsers.Default)(implicit val executionContext: ExecutionContext)
+    extends MinimalAuthAction {
+  override protected def refine[A](request: Request[A]): Future[Either[Result, Request[A]]] =
+    Future.successful(Right(request))
 }

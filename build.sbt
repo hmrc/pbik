@@ -1,8 +1,8 @@
-
 import scoverage.ScoverageKeys
 import uk.gov.hmrc.DefaultBuildSettings.{defaultSettings, scalaSettings}
 import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
+import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport.scalafmtOnCompile
 
 val appName = "pbik"
 
@@ -17,7 +17,8 @@ lazy val scoverageSettings: Seq[Def.Setting[_]] = {
   )
 }
 
-lazy val plugins: Seq[Plugins] = Seq(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
+lazy val plugins: Seq[Plugins] =
+  Seq(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(plugins: _*)
@@ -27,6 +28,7 @@ lazy val microservice = Project(appName, file("."))
     publishingSettings,
     defaultSettings(),
     majorVersion := 4,
+    scalafmtOnCompile := true,
     PlayKeys.playDefaultPort := 9351,
     libraryDependencies ++= AppDependencies.all,
     retrieveManaged := true,

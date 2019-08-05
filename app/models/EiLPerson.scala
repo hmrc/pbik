@@ -18,11 +18,18 @@ package models
 
 import play.api.libs.json.Json
 
-case class EiLPerson(nino: String, firstForename: String, secondForename: Option[String], surname: String, worksPayrollNumber: Option[String],
-                     dateOfBirth: Option[String], gender: Option[String], status: Option[Int], perOptLock: Int = 0) {
+case class EiLPerson(
+  nino: String,
+  firstForename: String,
+  secondForename: Option[String],
+  surname: String,
+  worksPayrollNumber: Option[String],
+  dateOfBirth: Option[String],
+  gender: Option[String],
+  status: Option[Int],
+  perOptLock: Int = 0) {
 
   override def equals(obj: Any) = {
-
 
     val other = obj.asInstanceOf[EiLPerson]
     obj.isInstanceOf[EiLPerson] && (this.nino == other.nino)
@@ -46,16 +53,24 @@ object EiLPerson {
   val defaultStatus = Some(defaultIntArgumentValue)
   val defaultPerOptLock = defaultIntArgumentValue
 
-  def secondaryComparison(x: EiLPerson, y: EiLPerson): Boolean = {
+  def secondaryComparison(x: EiLPerson, y: EiLPerson): Boolean =
     x.firstForename == y.firstForename &&
       x.surname == y.surname &&
       x.dateOfBirth.getOrElse("") == y.dateOfBirth.getOrElse("") &&
       x.gender.getOrElse("") == y.gender.getOrElse("")
-  }
 
-  def defaultEiLPerson(): EiLPerson = {
-    EiLPerson(defaultNino, defaultFirstName, defaultSecondName, defaultSurname, defaultWorksPayrollNumber, defaultDateOfBirth, defaultGender, defaultStatus, defaultPerOptLock )
-  }
+  def defaultEiLPerson(): EiLPerson =
+    EiLPerson(
+      defaultNino,
+      defaultFirstName,
+      defaultSecondName,
+      defaultSurname,
+      defaultWorksPayrollNumber,
+      defaultDateOfBirth,
+      defaultGender,
+      defaultStatus,
+      defaultPerOptLock
+    )
 
   implicit val eiLPersonFormat = Json.format[EiLPerson]
 }

@@ -24,16 +24,17 @@ import play.api.Configuration
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
-class StaticNPSController @Inject()(val tierConnector:HmrcTierConnectorWrapped,
-                                    val runModeConfiguration: Configuration,
-                                    authenticate: MinimalAuthAction,
-                                    controllerUtils: ControllerUtils,
-                                    cc: ControllerComponents) extends BackendController(cc) {
+class StaticNPSController @Inject()(
+  val tierConnector: HmrcTierConnectorWrapped,
+  val runModeConfiguration: Configuration,
+  authenticate: MinimalAuthAction,
+  controllerUtils: ControllerUtils,
+  cc: ControllerComponents)
+    extends BackendController(cc) {
 
-  def getBenefitTypes(year: Int): Action[AnyContent] = authenticate.async {
-    implicit request =>
-      val url = s"${controllerUtils.baseURL}/$year/${controllerUtils.getBenefitTypesPath}"
-      controllerUtils.generateResultBasedOnStatus(tierConnector.retrieveDataGet(url)(hc))
+  def getBenefitTypes(year: Int): Action[AnyContent] = authenticate.async { implicit request =>
+    val url = s"${controllerUtils.baseURL}/$year/${controllerUtils.getBenefitTypesPath}"
+    controllerUtils.generateResultBasedOnStatus(tierConnector.retrieveDataGet(url)(hc))
   }
 
 }

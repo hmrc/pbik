@@ -34,11 +34,13 @@ trait FakePBIKApplication extends OneAppPerSuite {
 
   this: TestSuite =>
 
-  val config: Map[String, Any] = Map("application.secret" -> "Its secret",
-    "csrf.sign.tokens" -> false,
+  val config: Map[String, Any] = Map(
+    "application.secret"                          -> "Its secret",
+    "csrf.sign.tokens"                            -> false,
     "microservice.services.contact-frontend.host" -> "localhost",
     "microservice.services.contact-frontend.port" -> "9250",
-    "sessionId" -> "a-session-id")
+    "sessionId"                                   -> "a-session-id"
+  )
 
   val sampleBikJson: String =
     """[
@@ -48,10 +50,11 @@ trait FakePBIKApplication extends OneAppPerSuite {
       |]
     """.stripMargin
 
-  def mockrequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withSession(
-    SessionKeys.sessionId -> s"session-${UUID.randomUUID}",
-    SessionKeys.token -> "RANDOMTOKEN",
-    SessionKeys.userId -> "test-user-id")
+  def mockrequest: FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest().withSession(
+      SessionKeys.sessionId -> s"session-${UUID.randomUUID}",
+      SessionKeys.token     -> "RANDOMTOKEN",
+      SessionKeys.userId    -> "test-user-id")
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
