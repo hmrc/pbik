@@ -22,7 +22,7 @@ object AppDependencies {
   val compile: Seq[ModuleID] = Seq(
     ws,
     "uk.gov.hmrc" %% "bootstrap-play-26" % "0.40.0",
-    "uk.gov.hmrc" %% "tax-year" % "0.5.0"
+    "uk.gov.hmrc" %% "tax-year" % "1.0.0"
   )
 
   val test: Seq[ModuleID] = Seq(
