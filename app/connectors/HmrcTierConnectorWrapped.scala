@@ -33,9 +33,11 @@ class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Co
   def retrieveDataGet(url: String)(hc: HeaderCarrier): Future[HttpResponse] = {
     implicit val hcextra: HeaderCarrier = hc.withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
     http.GET(url).recover {
-      case e => {
-        Logger.warn("retrieveDataGet Failed, " + e)
-        HttpResponse(200, Some(Json.toJson(e.getMessage)))
+      case ex => {
+        Logger.error(
+          s"[HmrcTierConnectorWrapped][retrieveDataGet] an execption occured ${ex.getMessage}, when calling $url",
+          ex)
+        HttpResponse(200, Some(Json.toJson(ex.getMessage)))
       }
     }
   }
@@ -45,11 +47,12 @@ class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Co
     implicit val hcextra: HeaderCarrier =
       hac.withExtraHeaders(headers.toSeq: _*).withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
     http.POST(url, requestBody).recover {
-      case e => {
-        Logger.warn("retrieveDataPost Failed, " + e)
-        HttpResponse(200, Some(Json.toJson(e.getMessage)))
+      case ex => {
+        Logger.error(
+          s"[HmrcTierConnectorWrapped][retrieveDataPost] an execption occured ${ex.getMessage}, when calling $url",
+          ex)
+        HttpResponse(200, Some(Json.toJson(ex.getMessage)))
       }
     }
   }
-
 }

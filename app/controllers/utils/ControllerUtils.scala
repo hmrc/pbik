@@ -26,6 +26,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Request, Result}
 import play.api.{Configuration, Logger}
+import play.api.http.Status.OK
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -42,8 +43,8 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
     val endindex: Int = message.indexOf(",", startindex)
     if (startindex >= 0 && endindex > startindex) {
       val appStatusMessageSegment = message.substring(startindex, endindex)
-      Logger.info("An NPS error code has been detected " + appStatusMessageSegment)
-
+      Logger.error(
+        s"[ControllerUtils][extractUpstreamError] An NPS error code has been detected $appStatusMessageSegment")
       appStatusMessageRegex.r.findAllIn(appStatusMessageSegment).mkString
     } else {
       DEFAULT_ERROR
@@ -61,16 +62,18 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
     formats: json.Reads[Map[String, String]]): Future[Result] =
     wsResponse.map { response =>
       response.status match {
-        case 200 => {
+        case OK => {
           if (response.body.contains("appStatusMessage")) {
             Logger.warn(
-              "GenerateResultBasedOnStatus Response Failed status:" + response.status + " json:" + " body:" + response.body)
-
+              s"[ControllerUtils][generateResultBasedOnStatus] GenerateResultBasedOnStatus Response Failed status: ${response.status}"
+            )
             val msgValue = extractUpstreamError(response.body)
-
             val error = PbikError(msgValue)
-            if (error.errorCode == "63082") Ok(Json.toJson(List[EiLPerson]()))
-            else new Status(response.status)(Json.toJson(error))
+            if (error.errorCode == "63082") {
+              Ok(Json.toJson(List[EiLPerson]()))
+            } else {
+              new Status(response.status)(Json.toJson(error))
+            }
           } else {
             // TODO - why does response.header("eTag") return Null when the Option should.. but Tests fail without it
             val headers: Map[String, String] = if (response.header(HeaderTags.ETAG) != null) {
@@ -86,8 +89,9 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
         }
         case _ => {
           Logger.warn(
-            "GenerateResultBasedOnStatus Response Failed status:" + response.status + " json:" + " body:" + response.body + " request:" + request.body.asText)
-
+            s"[ControllerUtils][generateResultBasedOnStatus] GenerateResultBasedOnStatus Response Failed status:${response.status}" +
+              s" json:body:${response.body} request:${request.body.asText}"
+          )
           new Status(response.status)(response.body)
         }
       }
