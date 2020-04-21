@@ -52,15 +52,14 @@ class GatewayNPSController @Inject()(
   def cyCheck(year: Int): Boolean =
     if (TaxYear.current.currentYear == year & !configuration.cyEnabled) {
       Logger.warn(
-        "Support for Current Year is " + configuration.cyEnabled + " and currentYear is " +
-          TaxYear.current.currentYear + ". Attempt to update Benefits Type for Current Year rejected")
+        s"[GatewayNPSController][cyCheck] Support for Current Year is ${configuration.cyEnabled} and currentYear is ${TaxYear.current.currentYear} " +
+          s"Attempt to update Benefits Type for Current Year rejected")
       false
     } else {
       true
     }
 
   def getRegisteredBenefits(empRef: String, year: Int): Action[AnyContent] = authenticate.async { implicit request =>
-    Logger.info("SESSIONID is " + hc.sessionId.getOrElse("No sessionId set"))
     controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
       val url =
         s"${controllerUtils.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}/${credentials.payeSequenceNumber}"
@@ -104,8 +103,8 @@ class GatewayNPSController @Inject()(
           val response = controllerUtils.generateResultBasedOnStatus(
             tierConnector
               .retrieveDataPost(headers, url, request.body.asJson.getOrElse(Json.toJson(List.empty[String])))(hc))
-          response.map { re =>
-            re
+          response.map { result =>
+            result
           }
         }
       }

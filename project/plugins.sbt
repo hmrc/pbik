@@ -19,5 +19,6 @@ addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.7.0")
 
 addSbtPlugin("uk.gov.hmrc" % "sbt-artifactory" % "0.17.0")
 
-
 addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.16")
+
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.5.0")

@@ -96,7 +96,6 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
 
   "The status to response map" should {
     "Successfully return a response with status 200" in {
-
       val result = await(mockControllerUtils.generateResultBasedOnStatus(Future { mockWsResponseStatus200 }))
       result.body.asInstanceOf[Strict].data.utf8String must be("Body of response with status 200")
 
