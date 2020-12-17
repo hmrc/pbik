@@ -52,9 +52,9 @@ trait FakePBIKApplication extends OneAppPerSuite {
 
   def mockrequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest().withSession(
-      SessionKeys.sessionId -> s"session-${UUID.randomUUID}",
-      SessionKeys.token     -> "RANDOMTOKEN",
-      SessionKeys.userId    -> "test-user-id")
+      SessionKeys.sessionId       -> s"session-${UUID.randomUUID}",
+      SessionKeys.authToken       -> "RANDOMTOKEN",
+      SessionKeys.sensitiveUserId -> "test-user-id")
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
