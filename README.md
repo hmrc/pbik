@@ -1,7 +1,7 @@
 pbik
 =============
 
-[![Build Status](https://travis-ci.org/hmrc/pbik.svg)](https://travis-ci.org/hmrc/pbik) [ ![Download](https://api.bintray.com/packages/hmrc/releases/pbik/images/download.svg) ](https://bintray.com/hmrc/releases/pbik/_latestVersion)
+[![Build Status](https://travis-ci.org/hmrc/pbik.svg)](https://travis-ci.org/hmrc/pbik)
 
 This microservice retrieves and writes data from/to a [HoD] system called [NPS], for updating benefits/ expenses and excluding/ rescinding individual employees. The frontend service this interacts with is pbik-frontend.
 
