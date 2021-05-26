@@ -25,7 +25,7 @@ import models.PbikCredentials
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.{Configuration, Environment, Logger}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.time.TaxYear
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -42,6 +42,7 @@ class GatewayNPSController @Inject()(
     extends BackendController(cc) {
 
   val NO_HEADERS: Map[String, String] = Map[String, String]()
+  private val logger = Logger(this.getClass)
 
   /**
     * Method introduced in the middle tier ( PBIK ) to prevent Biks being registered during CY
@@ -51,7 +52,7 @@ class GatewayNPSController @Inject()(
     **/
   def cyCheck(year: Int): Boolean =
     if (TaxYear.current.currentYear == year & !configuration.cyEnabled) {
-      Logger.warn(
+      logger.warn(
         s"[GatewayNPSController][cyCheck] Support for Current Year is ${configuration.cyEnabled} and currentYear is ${TaxYear.current.currentYear} " +
           s"Attempt to update Benefits Type for Current Year rejected")
       false

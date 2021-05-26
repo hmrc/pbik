@@ -16,7 +16,7 @@
 
 package models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class EiLPerson(
   nino: String,
@@ -29,29 +29,29 @@ case class EiLPerson(
   status: Option[Int],
   perOptLock: Int = 0) {
 
-  override def equals(obj: Any) = {
+  override def equals(obj: Any): Boolean = {
 
     val other = obj.asInstanceOf[EiLPerson]
     obj.isInstanceOf[EiLPerson] && (this.nino == other.nino)
   }
 
-  override def hashCode = nino.hashCode
+  override def hashCode: Int = nino.hashCode
 
 }
 
 object EiLPerson {
 
-  val defaultStringArgumentValue = ""
-  val defaultIntArgumentValue = -1
-  val defaultNino = defaultStringArgumentValue
-  val defaultFirstName = defaultStringArgumentValue
-  val defaultSecondName = Some(defaultStringArgumentValue)
-  val defaultSurname = defaultStringArgumentValue
-  val defaultWorksPayrollNumber = Some(defaultStringArgumentValue)
-  val defaultDateOfBirth = None
-  val defaultGender = Some(defaultStringArgumentValue)
-  val defaultStatus = Some(defaultIntArgumentValue)
-  val defaultPerOptLock = defaultIntArgumentValue
+  val defaultStringArgumentValue: String = ""
+  val defaultIntArgumentValue: Int = -1
+  val defaultNino: String = defaultStringArgumentValue
+  val defaultFirstName: String = defaultStringArgumentValue
+  val defaultSecondName: Option[String] = Some(defaultStringArgumentValue)
+  val defaultSurname: String = defaultStringArgumentValue
+  val defaultWorksPayrollNumber: Option[String] = Some(defaultStringArgumentValue)
+  val defaultDateOfBirth: Option[Nothing] = None
+  val defaultGender: Option[String] = Some(defaultStringArgumentValue)
+  val defaultStatus: Option[Int] = Some(defaultIntArgumentValue)
+  val defaultPerOptLock: Int = defaultIntArgumentValue
 
   def secondaryComparison(x: EiLPerson, y: EiLPerson): Boolean =
     x.firstForename == y.firstForename &&
@@ -72,5 +72,5 @@ object EiLPerson {
       defaultPerOptLock
     )
 
-  implicit val eiLPersonFormat = Json.format[EiLPerson]
+  implicit val eiLPersonFormat: OFormat[EiLPerson] = Json.format[EiLPerson]
 }

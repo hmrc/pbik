@@ -22,7 +22,7 @@ import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
 import play.api.Configuration
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 class StaticNPSController @Inject()(
   val tierConnector: HmrcTierConnectorWrapped,

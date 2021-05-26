@@ -17,30 +17,31 @@
 package controllers.actions
 
 import com.google.inject.ImplementedBy
+
 import javax.inject.Inject
 import play.api.Logger
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class MinimalAuthActionImpl @Inject()(val authConnector: AuthConnector, val parser: BodyParsers.Default)(
   implicit val executionContext: ExecutionContext)
     extends MinimalAuthAction with AuthorisedFunctions {
+  private val logger = Logger(this.getClass)
   override protected def refine[A](request: Request[A]): Future[Either[Result, Request[A]]] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
-
+    implicit val hc: HeaderCarrier =
+      HeaderCarrierConverter.fromRequestAndSession(request.withHeaders(request.headers), Session.emptyCookie)
     authorised() {
       Future.successful(Right(request))
     }.recover {
-      case t: Throwable => {
-        Logger.debug("Debug info - " + t.getMessage)
+      case t: Throwable =>
+        logger.debug("Debug info - " + t.getMessage)
         Left(Unauthorized)
-      }
     }
   }
 }
