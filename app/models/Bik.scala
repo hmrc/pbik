@@ -17,8 +17,8 @@
 package models
 
 case class Bik(iabdType: String, status: Int, eilCount: Int = 0) {
-  override def equals(obj: Any) =
+  override def equals(obj: Any): Boolean =
     obj.isInstanceOf[Bik] && this.iabdType == obj.asInstanceOf[Bik].iabdType
 
-  override def hashCode = iabdType.hashCode
+  override def hashCode: Int = iabdType.hashCode
 }

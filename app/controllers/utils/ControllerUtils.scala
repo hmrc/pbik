@@ -32,7 +32,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ControllerUtils @Inject()(configuration: Configuration) extends URIInformation(configuration) {
+class ControllerUtils @Inject()(configuration: Configuration) extends URIInformation(configuration) with play.api.Logging {
 
   val credentialsId: String = "pbik-credentials-id"
   private val appStatusMessageRegex = "[0-9]+"
@@ -43,7 +43,7 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
     val endindex: Int = message.indexOf(",", startindex)
     if (startindex >= 0 && endindex > startindex) {
       val appStatusMessageSegment = message.substring(startindex, endindex)
-      Logger.error(
+      logger.error(
         s"[ControllerUtils][extractUpstreamError] An NPS error code has been detected $appStatusMessageSegment")
       appStatusMessageRegex.r.findAllIn(appStatusMessageSegment).mkString
     } else {
@@ -62,9 +62,9 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
     formats: json.Reads[Map[String, String]]): Future[Result] =
     wsResponse.map { response =>
       response.status match {
-        case OK => {
+        case OK =>
           if (response.body.contains("appStatusMessage")) {
-            Logger.warn(
+            logger.warn(
               s"[ControllerUtils][generateResultBasedOnStatus] GenerateResultBasedOnStatus Response Failed status: ${response.status}"
             )
             val msgValue = extractUpstreamError(response.body)
@@ -86,14 +86,12 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
 
             Ok(response.body).withHeaders(headers.toSeq: _*)
           }
-        }
-        case _ => {
-          Logger.warn(
+        case _ =>
+          logger.warn(
             s"[ControllerUtils][generateResultBasedOnStatus] GenerateResultBasedOnStatus Response Failed status:${response.status}" +
               s" json:body:${response.body} request:${request.body.asText}"
           )
           new Status(response.status)(response.body)
-        }
       }
     }
 

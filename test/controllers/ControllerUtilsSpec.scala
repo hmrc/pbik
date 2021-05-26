@@ -54,7 +54,7 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
   val mockedBaseUrl = "baseUrl"
   val urlExtension = "urlExtension"
 
-  val mockCredentials = PbikCredentials(1, 2, 3, "aoReference", "payeSchemeOperatorName")
+  val mockCredentials: PbikCredentials = PbikCredentials(1, 2, 3, "aoReference", "payeSchemeOperatorName")
   class FakeResponse extends HttpResponse {
     override val allHeaders: Map[String, Seq[String]] = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
     override def status = 200
