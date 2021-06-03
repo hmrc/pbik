@@ -17,12 +17,11 @@
 package controllers
 
 import java.util.UUID
-
 import akka.stream.Materializer
 import controllers.actions.MinimalAuthAction
 import helper.TestMinimalAuthAction
 import org.scalatest.TestSuite
-import org.scalatestplus.play.OneAppPerSuite
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -30,7 +29,7 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 
-trait FakePBIKApplication extends OneAppPerSuite {
+trait FakePBIKApplication extends GuiceOneAppPerSuite {
 
   this: TestSuite =>
 
