@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import controllers.utils.ControllerUtils
 import helper.{StubbedControllerUtils, TestMinimalAuthAction}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Application
 import play.api.http.HttpEntity._
@@ -67,7 +67,6 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
   "When getting Benefits Types the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
       val gateway = StubbedGateway
-      val CY = 2015
       val result = await(gateway.getRegisteredBenefits("123/TEST1", 2015).apply(mockrequest))
       result.header.status must be(OK)
       result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
@@ -77,7 +76,6 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
   "When getting exclusions the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
       val gateway = StubbedGateway
-      val CY = 2015
       val result = await(gateway.getExclusionsForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
       result.header.status must be(OK)
       result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
@@ -87,7 +85,6 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
   "When updating exclusions the Controller " should {
     " parse a response correctly and not mutate the returned response body - update " in {
       val gateway = StubbedGateway
-      val CY = 2015
       val result = await(gateway.updateExclusionsForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
       result.header.status must be(OK)
       result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
@@ -95,7 +92,6 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
 
     " parse a response correctly and not mutate the returned response body - removal " in {
       val gateway = StubbedGateway
-      val CY = 2015
       val result = await(gateway.removeExclusionForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
       result.header.status must be(OK)
       result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
@@ -105,7 +101,6 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
   "When removing exclusions the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
       val gateway = StubbedGateway
-      val CY = 2015
       val result = await(gateway.removeExclusionForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
       result.header.status must be(OK)
       result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)

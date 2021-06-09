@@ -21,15 +21,15 @@ object AppDependencies {
 
   val compile: Seq[ModuleID] = Seq(
     ws,
-    "uk.gov.hmrc" %% "bootstrap-backend-play-27" % "4.2.0",
-    "uk.gov.hmrc" %% "tax-year" % "1.2.0"
+    "uk.gov.hmrc" %% "bootstrap-backend-play-27"     % "5.3.0",
+    "uk.gov.hmrc" %% "tax-year"                      % "1.3.0"
   )
 
   val test: Seq[ModuleID] = Seq(
-      "org.specs2" %% "specs2-core" % "4.5.1",
-      "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3",
-      "org.mockito" % "mockito-all" % "1.10.19",
-      "uk.gov.hmrc" %% "tax-year" % "1.2.0"
+      "org.specs2"                     %% "specs2-core"               % "4.5.1",
+      "org.scalatestplus.play"         %% "scalatestplus-play"        % "4.0.3",
+      "org.mockito"                    % "mockito-all"                % "1.10.19",
+      "org.pegdown"                    % "pegdown"                    % "1.6.0"
   ).map(_ % "test")
 
   val all: Seq[ModuleID] = compile ++ test

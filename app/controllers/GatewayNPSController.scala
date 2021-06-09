@@ -39,9 +39,10 @@ class GatewayNPSController @Inject()(
   environment: Environment,
   val controllerUtils: ControllerUtils,
   cc: ControllerComponents)
-    extends BackendController(cc) with play.api.Logging{
+    extends BackendController(cc) with play.api.Logging {
 
   val NO_HEADERS: Map[String, String] = Map[String, String]()
+
   /**
     * Method introduced in the middle tier ( PBIK ) to prevent Biks being registered during CY
     *

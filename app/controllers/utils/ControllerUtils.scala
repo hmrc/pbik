@@ -16,23 +16,22 @@
 
 package controllers.utils
 
-import java.net.URLDecoder
-
 import connectors.HmrcTierConnectorWrapped
-import javax.inject.Inject
 import models.{EiLPerson, HeaderTags, PbikCredentials, PbikError}
+import play.api.{Configuration, Logging}
+import play.api.http.Status.OK
 import play.api.libs.json
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Request, Result}
-import play.api.{Configuration, Logger}
-import play.api.http.Status.OK
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
+import java.net.URLDecoder
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ControllerUtils @Inject()(configuration: Configuration) extends URIInformation(configuration) with play.api.Logging {
+class ControllerUtils @Inject()(configuration: Configuration) extends URIInformation(configuration) with Logging {
 
   val credentialsId: String = "pbik-credentials-id"
   private val appStatusMessageRegex = "[0-9]+"
@@ -136,7 +135,9 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
           (HeaderTags.ETAG, request.headers.get(HeaderTags.ETAG).getOrElse("0")),
           (HeaderTags.X_TXID, request.headers.get(HeaderTags.X_TXID).getOrElse("1"))
         ))
-    } else None
+    } else {
+      None
+    }
 
     Future.successful(pbikHeaders)
   }
