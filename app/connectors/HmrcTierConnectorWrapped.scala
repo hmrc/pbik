@@ -16,19 +16,19 @@
 
 package connectors
 
-import javax.inject.Inject
+import play.api.http.Status
+import play.api.{Configuration, Logging}
 import play.api.libs.json.{JsValue, Json}
-import play.api.{Configuration, Logger}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Configuration) extends play.api.Logging{
+class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Configuration) extends Logging {
 
   val serviceOriginatorIdKey: String = configuration.get[String]("microservice.services.nps.originatoridkey")
   val serviceOriginatorId: String = configuration.get[String]("microservice.services.nps.originatoridvalue")
-
 
   def retrieveDataGet(url: String)(hc: HeaderCarrier): Future[HttpResponse] = {
     implicit val hcextra: HeaderCarrier = hc.withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
@@ -37,7 +37,7 @@ class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Co
         logger.error(
           s"[HmrcTierConnectorWrapped][retrieveDataGet] an execption occured ${ex.getMessage}, when calling $url",
           ex)
-        HttpResponse(200, Some(Json.toJson(ex.getMessage)))
+        HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
     }
   }
 
@@ -50,7 +50,7 @@ class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Co
         logger.error(
           s"[HmrcTierConnectorWrapped][retrieveDataPost] an execption occured ${ex.getMessage}, when calling $url",
           ex)
-        HttpResponse(200, Some(Json.toJson(ex.getMessage)))
+        HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
     }
   }
 }
