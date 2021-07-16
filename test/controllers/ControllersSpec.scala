@@ -62,13 +62,13 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
 
     when(
       gnc.controllerUtils
-        .retrieveNPSCredentials(any(), anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any()))
+        .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any()))
       .thenReturn(Future(mockCredentials))
 
-    when(gnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]], any[HeaderCarrier]))
+    when(gnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]]))
       .thenReturn(Future(Some(mockMutators)))
 
-    when(gnc.controllerUtils.generateResultBasedOnStatus(any())(any(), any(), any()))
+    when(gnc.controllerUtils.generateResultBasedOnStatus(any())(any()))
       .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
 
     gnc
@@ -124,13 +124,13 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
 
         when(
           mcysgnc.controllerUtils
-            .retrieveNPSCredentials(any(), anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any()))
+            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any()))
           .thenReturn(Future(mockCredentials))
 
-        when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]], any[HeaderCarrier]))
+        when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]]))
           .thenReturn(Future(Some(mockMutators)))
 
-        when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any(), any(), any()))
+        when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any()))
           .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
 
         when(mcysgnc.configuration.cyEnabled).thenReturn(true)
@@ -154,13 +154,13 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
 
         when(
           mcysgnc.controllerUtils
-            .retrieveNPSCredentials(any(), anyInt, anyString)(any[Request[AnyContent]], any[HeaderCarrier], any()))
+            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any()))
           .thenReturn(Future(mockCredentials))
 
-        when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]], any[HeaderCarrier]))
+        when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]]))
           .thenReturn(Future(Some(mockMutators)))
 
-        when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any(), any(), any()))
+        when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any()))
           .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
 
         when(mcysgnc.configuration.cyEnabled).thenReturn(true)

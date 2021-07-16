@@ -165,7 +165,7 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
         .withJsonBody(npsRequestBody)
         .withHeaders(HeaderTags.ETAG -> "10", HeaderTags.X_TXID -> "1")
 
-      val result = await(mockControllerUtils.getNPSMutatorSessionHeader(request, hc))
+      val result = await(mockControllerUtils.getNPSMutatorSessionHeader(request))
       result must be(Some(Map("ETag" -> "10", "X-TXID" -> "1")))
     }
 
@@ -176,7 +176,7 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
         .withJsonBody(npsRequestBody)
         .withHeaders()
 
-      val result = await(mockControllerUtils.getNPSMutatorSessionHeader(request, hc))
+      val result = await(mockControllerUtils.getNPSMutatorSessionHeader(request))
       result must be(None)
     }
   }
