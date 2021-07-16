@@ -37,7 +37,7 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
   private val appStatusMessageRegex = "[0-9]+"
   val DEFAULT_ERROR = "10001"
 
-  def extractUpstreamError(message: String)(implicit request: Request[AnyContent]): String = {
+  def extractUpstreamError(message: String): String = {
     val startindex: Int = message.indexOf("appStatusMessage")
     val endindex: Int = message.indexOf(",", startindex)
     if (startindex >= 0 && endindex > startindex) {
@@ -56,9 +56,7 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
     * @return
     */
   def generateResultBasedOnStatus(wsResponse: Future[HttpResponse])(
-    implicit request: Request[AnyContent],
-    hc: HeaderCarrier,
-    formats: json.Reads[Map[String, String]]): Future[Result] =
+    implicit request: Request[AnyContent]): Future[Result] =
     wsResponse.map { response =>
       response.status match {
         case OK =>
@@ -97,8 +95,7 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
   def createCompositeKey(employer_code: String, paye_scheme_type: Int): String = employer_code + "-" + paye_scheme_type
 
   def retrieveNPSCredentials(tierConnector: HmrcTierConnectorWrapped, year: Int, empRef: String)(
-    implicit request: Request[AnyContent],
-    hc: HeaderCarrier,
+    implicit hc: HeaderCarrier,
     formats: json.Format[PbikCredentials]): Future[PbikCredentials] = {
 
     val keyparts = extractEmployerRefParts(empRef)
@@ -118,17 +115,12 @@ class ControllerUtils @Inject()(configuration: Configuration) extends URIInforma
     tierConnector: HmrcTierConnectorWrapped,
     year: Int,
     employer_code: String,
-    paye_scheme_type: Int)(
-    implicit request: Request[AnyContent],
-    hc: HeaderCarrier,
-    formats: json.Format[PbikCredentials]): Future[PbikCredentials] =
+    paye_scheme_type: Int)(implicit hc: HeaderCarrier, formats: json.Format[PbikCredentials]): Future[PbikCredentials] =
     tierConnector.retrieveDataGet(s"$baseURL/$year/$employer_code/$paye_scheme_type")(hc) map { result: HttpResponse =>
       result.json.validate[PbikCredentials].asOpt.get
     }
 
-  def getNPSMutatorSessionHeader(
-    implicit request: Request[AnyContent],
-    hc: HeaderCarrier): Future[Option[Map[String, String]]] = {
+  def getNPSMutatorSessionHeader(implicit request: Request[AnyContent]): Future[Option[Map[String, String]]] = {
     val pbikHeaders = if (request.headers.get(HeaderTags.ETAG).isDefined) {
       Some(
         Map(

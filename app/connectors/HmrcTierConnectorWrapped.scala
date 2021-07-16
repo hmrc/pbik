@@ -17,9 +17,10 @@
 package connectors
 
 import play.api.http.Status
-import play.api.{Configuration, Logging}
 import play.api.libs.json.{JsValue, Json}
+import play.api.{Configuration, Logging}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.HttpReads.Implicits
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -30,27 +31,24 @@ class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Co
   val serviceOriginatorIdKey: String = configuration.get[String]("microservice.services.nps.originatoridkey")
   val serviceOriginatorId: String = configuration.get[String]("microservice.services.nps.originatoridvalue")
 
-  def retrieveDataGet(url: String)(hc: HeaderCarrier): Future[HttpResponse] = {
-    implicit val hcextra: HeaderCarrier = hc.withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
-    http.GET(url).recover {
+  private val extraHeaders: Seq[(String, String)] = Seq(serviceOriginatorIdKey -> serviceOriginatorId)
+
+  def retrieveDataGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
+    http.GET(url, extraHeaders).recover {
       case ex =>
         logger.error(
           s"[HmrcTierConnectorWrapped][retrieveDataGet] an execption occured ${ex.getMessage}, when calling $url",
           ex)
         HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
     }
-  }
 
   def retrieveDataPost(headers: Map[String, String], url: String, requestBody: JsValue)(
-    hac: HeaderCarrier): Future[HttpResponse] = {
-    implicit val hcextra: HeaderCarrier =
-      hac.withExtraHeaders(headers.toSeq: _*).withExtraHeaders(serviceOriginatorIdKey -> serviceOriginatorId)
-    http.POST(url, requestBody).recover {
+    implicit hc: HeaderCarrier): Future[HttpResponse] =
+    http.POST(url, requestBody, headers = extraHeaders ++ headers.toSeq).recover {
       case ex =>
         logger.error(
           s"[HmrcTierConnectorWrapped][retrieveDataPost] an execption occured ${ex.getMessage}, when calling $url",
           ex)
         HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
     }
-  }
 }
