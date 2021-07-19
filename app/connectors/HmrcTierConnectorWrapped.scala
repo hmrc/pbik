@@ -34,7 +34,7 @@ class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Co
   private val extraHeaders: Seq[(String, String)] = Seq(serviceOriginatorIdKey -> serviceOriginatorId)
 
   def retrieveDataGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    http.GET(url, extraHeaders).recover {
+    http.GET(url, headers = extraHeaders).recover {
       case ex =>
         logger.error(
           s"[HmrcTierConnectorWrapped][retrieveDataGet] an execption occured ${ex.getMessage}, when calling $url",
