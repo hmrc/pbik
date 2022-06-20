@@ -10,7 +10,8 @@ lazy val scoverageSettings: Seq[Def.Setting[_]] = {
     ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;models/.data/..*;views.*;config.*;models.*;" +
       ".*(AuthService|BuildInfo|Routes).*;" +
       "connectors.*",
-    ScoverageKeys.coverageMinimum := 80,
+    ScoverageKeys.coverageMinimumStmtTotal := 80.22,
+    ScoverageKeys.coverageMinimumBranchTotal := 62.50,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
   )
@@ -24,7 +25,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     scoverageSettings,
     scalaSettings,
-    scalaVersion := "2.12.12",
+    scalaVersion := "2.12.15",
     publishingSettings,
     defaultSettings(),
     majorVersion := 4,
