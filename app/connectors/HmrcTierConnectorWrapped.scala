@@ -24,12 +24,12 @@ import java.util.UUID.randomUUID
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Configuration) extends Logging {
 
   val serviceOriginatorIdKey: String = configuration.get[String]("microservice.services.nps.originatoridkey")
   val serviceOriginatorId: String = configuration.get[String]("microservice.services.nps.originatoridvalue")
   val CORRELATION_HEADER = "CorrelationId"
+  val requestIdPattern = """.*([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}).*""".r
 
   private def buildHeaders(correlationId: String): Seq[(String, String)] =
     Seq(
@@ -39,17 +39,18 @@ class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Co
 
   def generateNewUUID: String = randomUUID.toString
 
-  private[connectors] def getCorrelationId(hc: HeaderCarrier): String = {
-    val CorrelationIdPattern = """.*([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}).*""".r
+  private[connectors] def getCorrelationId(hc: HeaderCarrier): String =
     hc.requestId match {
       case Some(requestId) =>
         requestId.value match {
-          case CorrelationIdPattern(prefix) => prefix + "-" + generateNewUUID.substring(24)
-          case _                            => generateNewUUID
+          case requestIdPattern(prefix) => {
+            val twelveRandomDigits = generateNewUUID.takeRight(12)
+            prefix + "-" + twelveRandomDigits
+          }
+          case _ => generateNewUUID
         }
       case _ => generateNewUUID
     }
-  }
 
   def retrieveDataGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     val correlationId = getCorrelationId(hc)
