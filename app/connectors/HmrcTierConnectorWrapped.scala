@@ -20,35 +20,58 @@ import play.api.http.Status
 import play.api.libs.json.{JsValue, Json}
 import play.api.{Configuration, Logging}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
-import uk.gov.hmrc.http.HttpReads.Implicits
-
+import java.util.UUID.randomUUID
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
 class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Configuration) extends Logging {
 
   val serviceOriginatorIdKey: String = configuration.get[String]("microservice.services.nps.originatoridkey")
   val serviceOriginatorId: String = configuration.get[String]("microservice.services.nps.originatoridvalue")
+  val CORRELATION_HEADER = "CorrelationId"
+  val requestIdPattern = """.*([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}).*""".r
 
-  private val extraHeaders: Seq[(String, String)] = Seq(serviceOriginatorIdKey -> serviceOriginatorId)
+  private def buildHeaders(correlationId: String): Seq[(String, String)] =
+    Seq(
+      serviceOriginatorIdKey -> serviceOriginatorId,
+      CORRELATION_HEADER     -> correlationId
+    )
 
-  def retrieveDataGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    http.GET(url, headers = extraHeaders).recover {
+  def generateNewUUID: String = randomUUID.toString
+
+  private[connectors] def getCorrelationId(hc: HeaderCarrier): String =
+    hc.requestId match {
+      case Some(requestId) =>
+        requestId.value match {
+          case requestIdPattern(prefix) => {
+            val twelveRandomDigits = generateNewUUID.takeRight(12)
+            prefix + "-" + twelveRandomDigits
+          }
+          case _ => generateNewUUID
+        }
+      case _ => generateNewUUID
+    }
+
+  def retrieveDataGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    val correlationId = getCorrelationId(hc)
+    http.GET(url, headers = buildHeaders(correlationId)).recover {
       case ex =>
         logger.error(
           s"[HmrcTierConnectorWrapped][retrieveDataGet] an execption occured ${ex.getMessage}, when calling $url",
           ex)
         HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
     }
+  }
 
   def retrieveDataPost(headers: Map[String, String], url: String, requestBody: JsValue)(
-    implicit hc: HeaderCarrier): Future[HttpResponse] =
-    http.POST(url, requestBody, headers = extraHeaders ++ headers.toSeq).recover {
+    implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    val correlationId = getCorrelationId(hc)
+    http.POST(url, requestBody, headers = buildHeaders(correlationId) ++ headers.toSeq).recover {
       case ex =>
         logger.error(
           s"[HmrcTierConnectorWrapped][retrieveDataPost] an execption occured ${ex.getMessage}, when calling $url",
           ex)
         HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
     }
+  }
 }
