@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,19 @@ package connectors
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import play.api.Configuration
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, RequestId}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class HmrcTierConnectorWrappedSpec extends AnyWordSpec with MockitoSugar with Matchers {
 
   trait Setup {
 
-    val mockHttpClient: HttpClient = mock[HttpClient]
-    val mockAppConfig: Configuration = mock[Configuration]
-    val uuid = "123f4567-g89c-42c3-b456-557742330000"
+    val mockHttpClient: HttpClient          = mock[HttpClient]
+    val mockAppConfig: Configuration        = mock[Configuration]
+    val uuid                                = "123f4567-g89c-42c3-b456-557742330000"
     val connector: HmrcTierConnectorWrapped = new HmrcTierConnectorWrapped(mockHttpClient, mockAppConfig) {
       override def generateNewUUID: String = uuid
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,20 @@ import play.api.http.Status
 import play.api.libs.json.{JsValue, Json}
 import play.api.{Configuration, Logging}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+
 import java.util.UUID.randomUUID
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Configuration) extends Logging {
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.matching.Regex
+
+class HmrcTierConnectorWrapped @Inject() (val http: HttpClient, configuration: Configuration)(implicit
+  val executionContext: ExecutionContext
+) extends Logging {
 
   val serviceOriginatorIdKey: String = configuration.get[String]("microservice.services.nps.originatoridkey")
-  val serviceOriginatorId: String = configuration.get[String]("microservice.services.nps.originatoridvalue")
-  val CORRELATION_HEADER = "CorrelationId"
-  val requestIdPattern = """.*([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}).*""".r
+  val serviceOriginatorId: String    = configuration.get[String]("microservice.services.nps.originatoridvalue")
+  val CORRELATION_HEADER: String     = "CorrelationId"
+  val requestIdPattern: Regex        = """.*([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}).*""".r
 
   private def buildHeaders(correlationId: String): Seq[(String, String)] =
     Seq(
@@ -43,35 +47,35 @@ class HmrcTierConnectorWrapped @Inject()(val http: HttpClient, configuration: Co
     hc.requestId match {
       case Some(requestId) =>
         requestId.value match {
-          case requestIdPattern(prefix) => {
+          case requestIdPattern(prefix) =>
             val twelveRandomDigits = generateNewUUID.takeRight(12)
             prefix + "-" + twelveRandomDigits
-          }
-          case _ => generateNewUUID
+          case _                        => generateNewUUID
         }
-      case _ => generateNewUUID
+      case _               => generateNewUUID
     }
 
   def retrieveDataGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     val correlationId = getCorrelationId(hc)
-    http.GET(url, headers = buildHeaders(correlationId)).recover {
-      case ex =>
-        logger.error(
-          s"[HmrcTierConnectorWrapped][retrieveDataGet] an execption occured ${ex.getMessage}, when calling $url",
-          ex)
-        HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
+    http.GET(url, headers = buildHeaders(correlationId)).recover { case ex =>
+      logger.error(
+        s"[HmrcTierConnectorWrapped][retrieveDataGet] an execption occured ${ex.getMessage}, when calling $url",
+        ex
+      )
+      HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
     }
   }
 
-  def retrieveDataPost(headers: Map[String, String], url: String, requestBody: JsValue)(
-    implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def retrieveDataPost(headers: Map[String, String], url: String, requestBody: JsValue)(implicit
+    hc: HeaderCarrier
+  ): Future[HttpResponse] = {
     val correlationId = getCorrelationId(hc)
-    http.POST(url, requestBody, headers = buildHeaders(correlationId) ++ headers.toSeq).recover {
-      case ex =>
-        logger.error(
-          s"[HmrcTierConnectorWrapped][retrieveDataPost] an execption occured ${ex.getMessage}, when calling $url",
-          ex)
-        HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
+    http.POST(url, requestBody, headers = buildHeaders(correlationId) ++ headers.toSeq).recover { case ex =>
+      logger.error(
+        s"[HmrcTierConnectorWrapped][retrieveDataPost] an execption occured ${ex.getMessage}, when calling $url",
+        ex
+      )
+      HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
     }
   }
 }

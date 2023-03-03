@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package config
 import javax.inject.Inject
 import play.api.Configuration
 
-class PbikConfig @Inject()(configuration: Configuration) {
+class PbikConfig @Inject() (configuration: Configuration) {
 
   val cyEnabled: Boolean = configuration.get[Boolean]("cymode.enabled")
 

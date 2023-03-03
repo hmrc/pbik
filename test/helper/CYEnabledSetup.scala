@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,8 @@ import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
 import org.mockito.Mockito.mock
-import org.specs2.specification.Scope
 
-trait CYEnabledSetup extends Scope {
+trait CYEnabledSetup {
 
   object GuiceTestModule extends AbstractModule {
 

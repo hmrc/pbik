@@ -12,28 +12,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 import play.sbt.PlayImport._
 import sbt._
 
 object AppDependencies {
 
+  private lazy val bootstrapPlayVersion = "7.14.0"
+
   val compile: Seq[ModuleID] = Seq(
     ws,
-    "uk.gov.hmrc" %% "bootstrap-backend-play-28" % "5.24.0",
+    "uk.gov.hmrc" %% "bootstrap-backend-play-28" % bootstrapPlayVersion,
     "uk.gov.hmrc" %% "tax-year"                  % "3.0.0"
   )
 
-  val test: Seq[ModuleID] = Seq(
-    "org.specs2"             %% "specs2-core"        % "4.16.0",
-    "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0",
-    "org.scalatestplus"      %% "mockito-3-4"        % "3.2.10.0",
-    "com.vladsch.flexmark"   % "flexmark-all"        % "0.35.10",
-    "org.mockito"            % "mockito-all"         % "1.10.19",
-    "org.pegdown"            % "pegdown"             % "1.6.0"
-  ).map(_ % "test")
+  val test: Seq[ModuleID]    = Seq(
+    "org.scalatest"       %% "scalatest"              % "3.2.15",
+    "uk.gov.hmrc"         %% "bootstrap-test-play-28" % bootstrapPlayVersion,
+    "org.mockito"         %% "mockito-scala"          % "1.17.12",
+    "com.vladsch.flexmark" % "flexmark-all"           % "0.62.2"
+  ).map(_ % Test)
 
-  val all: Seq[ModuleID] = compile ++ test
+  def apply(): Seq[ModuleID] = compile ++ test
 
 }

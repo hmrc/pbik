@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,11 @@ import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
 import helper.{CYEnabledSetup, TestMinimalAuthAction}
 import models.{HeaderTags, PbikCredentials}
-import org.mockito.Matchers._
-import org.mockito.Mockito._
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.ArgumentMatchers._
+import org.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Application
-import play.api.http.HttpEntity.Strict
+import play.api.http.Status.NOT_IMPLEMENTED
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{AnyContent, AnyContentAsEmpty, Request, Results}
@@ -49,24 +48,26 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
 
   val mockCredentials: PbikCredentials = mock[PbikCredentials]
 
-  val paye_scheme_type: Int = 123
-  val employer_number: String = "999"
-  val paye_seq_no: Int = 123
-  val empref = "123/TEST1"
+  val paye_scheme_type: Int             = 123
+  val employer_number: String           = "999"
+  val paye_seq_no: Int                  = 123
+  val empref                            = "123/TEST1"
   val mockMutators: Map[String, String] = Map[String, String]()
-  val ibdtype = 39
-  val year: Int = TaxYear.current.currentYear + 1
+  val ibdtype                           = 39
+  val cy: Int                           = TaxYear.current.currentYear
+  val year: Int                         = cy + 1
 
   val mockGatewayNPSController: GatewayNPSController = {
     val gnc: GatewayNPSController = app.injector.instanceOf[GatewayNPSController]
 
     when(
       gnc.controllerUtils
-        .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any()))
+        .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any())
+    )
       .thenReturn(Future(mockCredentials))
 
     when(gnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]]))
-      .thenReturn(Future(Some(mockMutators)))
+      .thenReturn(mockMutators)
 
     when(gnc.controllerUtils.generateResultBasedOnStatus(any())(any()))
       .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
@@ -79,23 +80,22 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
   "A post request" should {
 
     "Successfully update registered benefits " in {
-      val result = await(mockGatewayNPSController.updateBenefitTypes(empref, year)(request))
-      result.header.status must be(OK)
-      result.body.asInstanceOf[Strict].data.utf8String must be("")
-      result.header.headers must be(Map(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0"))
-      //bodyOf(result) shouldBe ""
-      //status(result) shouldBe 200
-      //headers(result) shouldBe Map("Content-Type" -> "text/plain; charset=utf-8", HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")
+      val result = mockGatewayNPSController.updateBenefitTypes(empref, year)(request)
+      status(result)          must be(OK)
+      contentAsString(result) must be("")
+      headers(result)         must be(Map(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0"))
+    }
+
+    "NotImplemented when cy == current year " in {
+      val result = mockGatewayNPSController.updateBenefitTypes(empref, cy)(request)
+      status(result) must be(NOT_IMPLEMENTED)
     }
 
     "Successfully update registered exclusions" in {
-      val result = await(mockGatewayNPSController.updateExclusionsForEmployer(empref, year, ibdtype)(request))
-      result.header.status must be(OK)
-      result.body.asInstanceOf[Strict].data.utf8String must be("")
-      result.header.headers must be(Map(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0"))
-      //bodyOf(result) shouldBe ""
-      //status(result) shouldBe 200
-      //headers(result) shouldBe Map("Content-Type" -> "text/plain; charset=utf-8", HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")
+      val result = mockGatewayNPSController.updateExclusionsForEmployer(empref, year, ibdtype)(request)
+      status(result)          must be(OK)
+      contentAsString(result) must be("")
+      headers(result)         must be(Map(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0"))
     }
   }
 
@@ -124,11 +124,12 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
 
         when(
           mcysgnc.controllerUtils
-            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any()))
+            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any())
+        )
           .thenReturn(Future(mockCredentials))
 
         when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]]))
-          .thenReturn(Future(Some(mockMutators)))
+          .thenReturn(mockMutators)
 
         when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any()))
           .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
@@ -154,11 +155,12 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
 
         when(
           mcysgnc.controllerUtils
-            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any()))
+            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any())
+        )
           .thenReturn(Future(mockCredentials))
 
         when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]]))
-          .thenReturn(Future(Some(mockMutators)))
+          .thenReturn(mockMutators)
 
         when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any()))
           .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))

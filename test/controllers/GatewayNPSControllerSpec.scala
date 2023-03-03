@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,18 @@ import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
 import helper.{StubbedControllerUtils, TestMinimalAuthAction}
-import org.mockito.Matchers._
-import org.mockito.Mockito._
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.ArgumentMatchers._
+import org.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Application
-import play.api.http.HttpEntity._
+import play.api.http.Status.NOT_IMPLEMENTED
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json}
-import play.api.test.Helpers.{await, _}
+import play.api.mvc.Results.NotImplemented
+import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.time.TaxYear
 
 import scala.concurrent.Future
 
@@ -49,7 +50,7 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
     override def status = 200
 
     override val json: JsValue = Json.parse(sampleBikJson)
-    override val body: String = sampleBikJson
+    override val body: String  = sampleBikJson
   }
 
   val StubbedGateway: GatewayNPSController = {
@@ -67,43 +68,49 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
   "When getting Benefits Types the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
       val gateway = StubbedGateway
-      val result = await(gateway.getRegisteredBenefits("123/TEST1", 2015).apply(mockrequest))
-      result.header.status must be(OK)
-      result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+      val result  = gateway.getRegisteredBenefits("123/TEST1", 2015).apply(mockrequest)
+      status(result)          must be(OK)
+      contentAsString(result) must be(sampleBikJson)
     }
   }
 
   "When getting exclusions the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
       val gateway = StubbedGateway
-      val result = await(gateway.getExclusionsForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
-      result.header.status must be(OK)
-      result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+      val result  = gateway.getExclusionsForEmployer("123/TEST1", 2015, 37).apply(mockrequest)
+      status(result)          must be(OK)
+      contentAsString(result) must be(sampleBikJson)
     }
   }
 
   "When updating exclusions the Controller " should {
     " parse a response correctly and not mutate the returned response body - update " in {
       val gateway = StubbedGateway
-      val result = await(gateway.updateExclusionsForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
-      result.header.status must be(OK)
-      result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+      val result  = gateway.updateExclusionsForEmployer("123/TEST1", 2015, 37).apply(mockrequest)
+      status(result)          must be(OK)
+      contentAsString(result) must be(sampleBikJson)
     }
 
     " parse a response correctly and not mutate the returned response body - removal " in {
       val gateway = StubbedGateway
-      val result = await(gateway.removeExclusionForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
-      result.header.status must be(OK)
-      result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+      val result  = gateway.removeExclusionForEmployer("123/TEST1", 2015, 37).apply(mockrequest)
+      status(result)          must be(OK)
+      contentAsString(result) must be(sampleBikJson)
+    }
+
+    " NotImplemented when cy is current year " in {
+      val gateway = StubbedGateway
+      val result  = gateway.removeExclusionForEmployer("123/TEST1", TaxYear.current.currentYear, 37).apply(mockrequest)
+      status(result) must be(NOT_IMPLEMENTED)
     }
   }
 
   "When removing exclusions the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
       val gateway = StubbedGateway
-      val result = await(gateway.removeExclusionForEmployer("123/TEST1", 2015, 37).apply(mockrequest))
-      result.header.status must be(OK)
-      result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+      val result  = gateway.removeExclusionForEmployer("123/TEST1", 2015, 37).apply(mockrequest)
+      status(result)          must be(OK)
+      contentAsString(result) must be(sampleBikJson)
     }
   }
 

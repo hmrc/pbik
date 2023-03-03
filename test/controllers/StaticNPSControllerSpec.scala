@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,10 @@ import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
 import helper.{StubbedControllerUtils, TestMinimalAuthAction}
-import org.mockito.Matchers._
-import org.mockito.Mockito._
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.ArgumentMatchers._
+import org.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Application
-import play.api.http.HttpEntity.Strict
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json}
@@ -45,9 +43,9 @@ class StaticNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKAp
 
   class FakeResponse extends HttpResponse {
     override val allHeaders: Map[String, Seq[String]] = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
-    override def status = 200
-    override val json: JsValue = Json.parse(sampleBikJson)
-    override val body: String = sampleBikJson
+    override def status                               = 200
+    override val json: JsValue                        = Json.parse(sampleBikJson)
+    override val body: String                         = sampleBikJson
   }
 
   val staticNPSController: StaticNPSController = {
@@ -59,10 +57,10 @@ class StaticNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKAp
 
   "When getting Benefits Types the Controller " should {
     " parse a response correctly and not mutate the returned response body " in {
-      val CY = 2015
-      val result = await(staticNPSController.getBenefitTypes(CY)(mockrequest))
-      result.header.status must be(OK)
-      result.body.asInstanceOf[Strict].data.utf8String must be(sampleBikJson)
+      val CY     = 2015
+      val result = staticNPSController.getBenefitTypes(CY)(mockrequest)
+      status(result)          must be(OK)
+      contentAsString(result) must be(sampleBikJson)
     }
   }
 
