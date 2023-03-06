@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,15 @@ import com.google.inject.Inject
 import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
-import play.api.Configuration
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-class StaticNPSController @Inject()(
+class StaticNPSController @Inject() (
   val tierConnector: HmrcTierConnectorWrapped,
-  val runModeConfiguration: Configuration,
   authenticate: MinimalAuthAction,
   controllerUtils: ControllerUtils,
-  cc: ControllerComponents)
-    extends BackendController(cc) {
+  cc: ControllerComponents
+) extends BackendController(cc) {
 
   def getBenefitTypes(year: Int): Action[AnyContent] = authenticate.async { implicit request =>
     val url = s"${controllerUtils.baseURL}/$year/${controllerUtils.getBenefitTypesPath}"

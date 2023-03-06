@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,8 @@ trait FakePBIKApplication extends GuiceOneAppPerSuite {
     FakeRequest().withSession(
       SessionKeys.sessionId       -> s"session-${UUID.randomUUID}",
       SessionKeys.authToken       -> "RANDOMTOKEN",
-      SessionKeys.sensitiveUserId -> "test-user-id")
+      SessionKeys.sensitiveUserId -> "test-user-id"
+    )
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 

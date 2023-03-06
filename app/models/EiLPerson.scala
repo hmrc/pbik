@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,8 @@ case class EiLPerson(
   dateOfBirth: Option[String],
   gender: Option[String],
   status: Option[Int],
-  perOptLock: Int = 0) {
+  perOptLock: Int = 0
+) {
 
   override def equals(obj: Any): Boolean = {
 
@@ -41,17 +42,17 @@ case class EiLPerson(
 
 object EiLPerson {
 
-  val defaultStringArgumentValue: String = ""
-  val defaultIntArgumentValue: Int = -1
-  val defaultNino: String = defaultStringArgumentValue
-  val defaultFirstName: String = defaultStringArgumentValue
-  val defaultSecondName: Option[String] = Some(defaultStringArgumentValue)
-  val defaultSurname: String = defaultStringArgumentValue
+  val defaultStringArgumentValue: String        = ""
+  val defaultIntArgumentValue: Int              = -1
+  val defaultNino: String                       = defaultStringArgumentValue
+  val defaultFirstName: String                  = defaultStringArgumentValue
+  val defaultSecondName: Option[String]         = Some(defaultStringArgumentValue)
+  val defaultSurname: String                    = defaultStringArgumentValue
   val defaultWorksPayrollNumber: Option[String] = Some(defaultStringArgumentValue)
-  val defaultDateOfBirth: Option[Nothing] = None
-  val defaultGender: Option[String] = Some(defaultStringArgumentValue)
-  val defaultStatus: Option[Int] = Some(defaultIntArgumentValue)
-  val defaultPerOptLock: Int = defaultIntArgumentValue
+  val defaultDateOfBirth: Option[Nothing]       = None
+  val defaultGender: Option[String]             = Some(defaultStringArgumentValue)
+  val defaultStatus: Option[Int]                = Some(defaultIntArgumentValue)
+  val defaultPerOptLock: Int                    = defaultIntArgumentValue
 
   def secondaryComparison(x: EiLPerson, y: EiLPerson): Boolean =
     x.firstForename == y.firstForename &&

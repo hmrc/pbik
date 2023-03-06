@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,20 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class MinimalAuthActionImpl @Inject()(val authConnector: AuthConnector, val parser: BodyParsers.Default)(
-  implicit val executionContext: ExecutionContext)
-    extends MinimalAuthAction with AuthorisedFunctions with Logging {
+class MinimalAuthActionImpl @Inject() (val authConnector: AuthConnector, val parser: BodyParsers.Default)(implicit
+  val executionContext: ExecutionContext
+) extends MinimalAuthAction
+    with AuthorisedFunctions
+    with Logging {
   override protected def refine[A](request: Request[A]): Future[Either[Result, Request[A]]] = {
 
     implicit val hc: HeaderCarrier =
       HeaderCarrierConverter.fromRequest(request.withHeaders(request.headers))
     authorised() {
       Future.successful(Right(request))
-    }.recover {
-      case t: Throwable =>
-        logger.debug("Debug info - " + t.getMessage)
-        Left(Unauthorized)
+    }.recover { case t: Throwable =>
+      logger.debug("Debug info - " + t.getMessage)
+      Left(Unauthorized)
     }
   }
 }

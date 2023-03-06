@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import controllers.utils.URIInformation
 import javax.inject.Inject
 import play.api.Configuration
 
-class MockURIInformation @Inject()(configuration: Configuration) extends URIInformation(configuration) {
+class MockURIInformation @Inject() (configuration: Configuration) extends URIInformation(configuration) {
 
-  val mockedBaseUrl = "baseUrl"
-  override lazy val baseURL: String = mockedBaseUrl
+  val mockedBaseUrl                    = "baseUrl"
+  override lazy val baseURL: String    = mockedBaseUrl
   override lazy val serviceUrl: String = mockedBaseUrl
 
 }

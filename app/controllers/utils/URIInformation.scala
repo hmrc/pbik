@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import config.Service
 import javax.inject.Inject
 import play.api.Configuration
 
-class URIInformation @Inject()(configuration: Configuration) {
+class URIInformation @Inject() (configuration: Configuration) {
 
-  val getBenefitTypesPath = "getbenefittypes"
+  val getBenefitTypesPath    = "getbenefittypes"
   val updateBenefitTypesPath = "update"
-  val exclusionPath = "exclusion"
-  val addExclusionPath = "exclusion/update"
-  val removeExclusionPath = "exclusion/remove"
+  val exclusionPath          = "exclusion"
+  val addExclusionPath       = "exclusion/update"
+  val removeExclusionPath    = "exclusion/remove"
 
   // serviceUrl - the base URL, on which the service status call is hosted
   lazy val serviceUrl: String =
@@ -35,6 +35,6 @@ class URIInformation @Inject()(configuration: Configuration) {
   // baseUrl - the base URL, on which the service status call is hosted
   lazy val baseURL: String =
     s"${configuration.get[Service]("microservice.services.nps")}/nps-hod-service/services/nps/employer/payroll-bik"
-  val statusPath = "ServiceStatus"
+  val statusPath           = "ServiceStatus"
 
 }
