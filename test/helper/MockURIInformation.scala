@@ -17,8 +17,9 @@
 package helper
 
 import controllers.utils.URIInformation
-import javax.inject.Inject
 import play.api.Configuration
+
+import javax.inject.Inject
 
 class MockURIInformation @Inject() (configuration: Configuration) extends URIInformation(configuration) {
 

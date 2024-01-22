@@ -21,14 +21,15 @@ import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
 import helper.{StubbedControllerUtils, TestMinimalAuthAction}
 import org.mockito.ArgumentMatchers._
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Application
+import play.api.http.Status
 import play.api.http.Status.NOT_IMPLEMENTED
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.Results.NotImplemented
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.time.TaxYear
@@ -47,7 +48,7 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
   class FakeResponse extends HttpResponse {
     override val allHeaders: Map[String, Seq[String]] = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
 
-    override def status = 200
+    override def status: Int = Status.OK
 
     override val json: JsValue = Json.parse(sampleBikJson)
     override val body: String  = sampleBikJson

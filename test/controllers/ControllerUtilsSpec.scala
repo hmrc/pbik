@@ -21,7 +21,8 @@ import controllers.utils.{ControllerUtils, URIInformation}
 import helper.MockURIInformation
 import models.{HeaderTags, PbikCredentials}
 import org.mockito.ArgumentMatchers._
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Application
 import play.api.inject._

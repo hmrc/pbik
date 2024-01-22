@@ -18,14 +18,13 @@ package helper
 
 import connectors.HmrcTierConnectorWrapped
 import controllers.utils.ControllerUtils
-
-import javax.inject.Inject
 import models.PbikCredentials
 import play.api.Configuration
 import play.api.libs.json
 import play.api.mvc.{AnyContent, Request}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
