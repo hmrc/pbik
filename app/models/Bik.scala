@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,15 @@
 
 package models
 
+import play.api.libs.json.{Json, OFormat}
+
 case class Bik(iabdType: String, status: Int, eilCount: Int = 0) {
   override def equals(obj: Any): Boolean =
     obj.isInstanceOf[Bik] && this.iabdType == obj.asInstanceOf[Bik].iabdType
 
   override def hashCode: Int = iabdType.hashCode
+}
+
+object Bik {
+  implicit val format: OFormat[Bik] = Json.format[Bik]
 }

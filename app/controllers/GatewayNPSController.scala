@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@ import config.PbikConfig
 import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
-import models.PbikCredentials
+import models.v1.{BenefitInKindRequest, BenefitListUpdateRequest, PersonOptimisticLockRequest}
+import models.{HeaderTags, PbikCredentials}
+import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -31,13 +33,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class GatewayNPSController @Inject() (
   val tierConnector: HmrcTierConnectorWrapped,
-  val configuration: PbikConfig,
+  val pbikConfig: PbikConfig,
   authenticate: MinimalAuthAction,
   val controllerUtils: ControllerUtils,
   cc: ControllerComponents
 )(implicit val executionContext: ExecutionContext)
     extends BackendController(cc)
-    with play.api.Logging {
+    with Logging {
 
   /**
     * Method introduced in the middle tier ( PBIK ) to prevent Biks being registered during CY
@@ -46,9 +48,9 @@ class GatewayNPSController @Inject() (
     * @return Boolean true if either cy mode is enabled or if its disabled but the year supplied is not the current year
     */
   def cyCheck(year: Int): Boolean =
-    if (TaxYear.current.currentYear == year & !configuration.cyEnabled) {
+    if (TaxYear.current.currentYear == year & !pbikConfig.cyEnabled) {
       logger.warn(
-        s"[GatewayNPSController][cyCheck] Support for Current Year is ${configuration.cyEnabled} and currentYear is ${TaxYear.current.currentYear} " +
+        s"[GatewayNPSController][cyCheck] Support for Current Year is ${pbikConfig.cyEnabled} and currentYear is ${TaxYear.current.currentYear} " +
           s"Attempt to update Benefits Type for Current Year rejected"
       )
       false
@@ -57,10 +59,8 @@ class GatewayNPSController @Inject() (
     }
 
   def getRegisteredBenefits(empRef: String, year: Int): Action[AnyContent] = authenticate.async { implicit request =>
-    controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
-      val url =
-        s"${controllerUtils.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}/${credentials.payeSequenceNumber}"
-      controllerUtils.generateResultBasedOnStatus(tierConnector.retrieveDataGet(url)(hc))
+    controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef).flatMap { credentials: PbikCredentials =>
+      controllerUtils.mapResponseToResult(tierConnector.getRegisteredBenefits(credentials, request.userPID, year)(hc))
     }
   }
 
@@ -68,20 +68,27 @@ class GatewayNPSController @Inject() (
     implicit request =>
       controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
         val url =
-          s"${controllerUtils.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}/${credentials.payeSequenceNumber}/$ibdtype/${controllerUtils.exclusionPath}"
+          s"${pbikConfig.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}" +
+            s"/${credentials.payeSequenceNumber}/$ibdtype/${pbikConfig.exclusionPath}"
         controllerUtils.generateResultBasedOnStatus(tierConnector.retrieveDataGet(url)(hc))
       }
   }
 
   def updateBenefitTypes(empRef: String, year: Int): Action[AnyContent] = authenticate.async { implicit request =>
     if (cyCheck(year)) {
+      val biksToUpdate = request.body.asJson.flatMap(_.validate[List[BenefitInKindRequest]].asOpt).getOrElse(List.empty)
       controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
-        val url     =
-          s"${controllerUtils.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}/${credentials.payeSequenceNumber}/${controllerUtils.updateBenefitTypesPath}"
-        val headers = controllerUtils.getNPSMutatorSessionHeader
-        controllerUtils.generateResultBasedOnStatus(
-          tierConnector
-            .retrieveDataPost(headers, url, request.body.asJson.getOrElse(Json.toJson(List.empty[String])))(hc)
+        val url                = pbikConfig.putRegisteredBenefitsPath(credentials, year)
+        val headers            = controllerUtils.getNPSMutatorSessionHeader
+        val lockRequest        = PersonOptimisticLockRequest(
+          credentials.payeSchemeType.toString,
+          credentials.employerNumber,
+          credentials.payeSequenceNumber,
+          headers.getOrElse(HeaderTags.ETAG, HeaderTags.ETAG_DEFAULT_VALUE).toInt
+        )
+        val bikToUpdateRequest = BenefitListUpdateRequest(biksToUpdate, lockRequest)
+        controllerUtils.mapResponseToResult(
+          tierConnector.updateBenefitTypes(url, bikToUpdateRequest, request.userPID)(hc, request)
         )
       }
     } else {
@@ -92,16 +99,13 @@ class GatewayNPSController @Inject() (
   def updateExclusionsForEmployer(empRef: String, year: Int, ibdtype: Int): Action[AnyContent] = authenticate.async {
     implicit request =>
       controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
-        val url      =
-          s"${controllerUtils.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}/${credentials.payeSequenceNumber}/$ibdtype/${controllerUtils.addExclusionPath}"
-        val headers  = controllerUtils.getNPSMutatorSessionHeader
-        val response = controllerUtils.generateResultBasedOnStatus(
-          tierConnector
-            .retrieveDataPost(headers, url, request.body.asJson.getOrElse(Json.toJson(List.empty[String])))(hc)
+        val url        =
+          s"${pbikConfig.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}" +
+            s"/${credentials.payeSequenceNumber}/$ibdtype/${pbikConfig.addExclusionPath}"
+        val exclusions = request.body.asJson.getOrElse(Json.toJson(List.empty[String]))
+        controllerUtils.generateResultBasedOnStatus(
+          tierConnector.retrieveDataPost(url, exclusions)(hc, request)
         )
-        response.map { result =>
-          result
-        }
       }
 
   }
@@ -110,12 +114,12 @@ class GatewayNPSController @Inject() (
     implicit request =>
       if (cyCheck(year)) {
         controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
-          val url     =
-            s"${controllerUtils.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}/${credentials.payeSequenceNumber}/$ibdtype/${controllerUtils.removeExclusionPath}"
-          val headers = controllerUtils.getNPSMutatorSessionHeader
+          val url        =
+            s"${pbikConfig.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}" +
+              s"/${credentials.payeSequenceNumber}/$ibdtype/${pbikConfig.removeExclusionPath}"
+          val exclusions = request.body.asJson.getOrElse(Json.toJson(List.empty[String]))
           controllerUtils.generateResultBasedOnStatus(
-            tierConnector
-              .retrieveDataPost(headers, url, request.body.asJson.getOrElse(Json.toJson(List.empty[String])))(hc)
+            tierConnector.retrieveDataPost(url, exclusions)(hc, request)
           )
         }
       } else {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
-package models
+package models.v1
 
-case class RegistrationList(selectAll: Option[String] = None, active: List[RegistrationItem])
+import play.api.libs.json.{Json, OFormat}
+
+case class PersonOptimisticLockRequest(
+  payeSchemeType: String,
+  employerNumber: Int,
+  payeSequenceNo: Int,
+  currentOptimisticLock: Int
+)
+
+object PersonOptimisticLockRequest {
+  implicit val formats: OFormat[PersonOptimisticLockRequest] = Json.format[PersonOptimisticLockRequest]
+}

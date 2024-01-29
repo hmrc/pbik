@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package controllers
 import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
-import helper.{CYEnabledSetup, TestMinimalAuthAction}
+import helper.{CYEnabledSetup, FakePBIKApplication, TestMinimalAuthAction}
 import models.{HeaderTags, PbikCredentials}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
@@ -29,6 +29,7 @@ import play.api.Application
 import play.api.http.Status.NOT_IMPLEMENTED
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
 import play.api.mvc.{AnyContent, AnyContentAsEmpty, Request, Results}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -58,12 +59,14 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
   val cy: Int                           = TaxYear.current.currentYear
   val year: Int                         = cy + 1
 
+  val npsHeaders: Map[String, String] = HeaderTags.createResponseHeaders("1", "0")
+
   val mockGatewayNPSController: GatewayNPSController = {
     val gnc: GatewayNPSController = app.injector.instanceOf[GatewayNPSController]
 
     when(
       gnc.controllerUtils
-        .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any())
+        .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier])
     )
       .thenReturn(Future(mockCredentials))
 
@@ -71,7 +74,10 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
       .thenReturn(mockMutators)
 
     when(gnc.controllerUtils.generateResultBasedOnStatus(any())(any()))
-      .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
+      .thenReturn(Future.successful(Ok("").withHeaders(npsHeaders.toSeq: _*)))
+
+    when(gnc.controllerUtils.mapResponseToResult(any()))
+      .thenReturn(Future.successful(Ok("").withHeaders(npsHeaders.toSeq: _*)))
 
     gnc
   }
@@ -84,7 +90,15 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
       val result = mockGatewayNPSController.updateBenefitTypes(empref, year)(request)
       status(result)          must be(OK)
       contentAsString(result) must be("")
-      headers(result)         must be(Map(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0"))
+      headers(result)         must be(npsHeaders)
+    }
+
+    "Successfully update registered benefits, If invalid json defaults to empty List" in {
+      val requestWithBody = FakeRequest().withJsonBody(Json.parse("""{"invalid": "json"}"""))
+      val result          = mockGatewayNPSController.updateBenefitTypes(empref, year)(requestWithBody)
+      status(result)          must be(OK)
+      contentAsString(result) must be("")
+      headers(result)         must be(npsHeaders)
     }
 
     "NotImplemented when cy == current year " in {
@@ -96,7 +110,7 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
       val result = mockGatewayNPSController.updateExclusionsForEmployer(empref, year, ibdtype)(request)
       status(result)          must be(OK)
       contentAsString(result) must be("")
-      headers(result)         must be(Map(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0"))
+      headers(result)         must be(npsHeaders)
     }
   }
 
@@ -125,7 +139,7 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
 
         when(
           mcysgnc.controllerUtils
-            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any())
+            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier])
         )
           .thenReturn(Future(mockCredentials))
 
@@ -133,9 +147,9 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
           .thenReturn(mockMutators)
 
         when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any()))
-          .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
+          .thenReturn(Future.successful(Ok("").withHeaders(npsHeaders.toSeq: _*)))
 
-        when(mcysgnc.configuration.cyEnabled).thenReturn(true)
+        when(mcysgnc.pbikConfig.cyEnabled).thenReturn(true)
 
         mcysgnc
       }
@@ -156,7 +170,7 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
 
         when(
           mcysgnc.controllerUtils
-            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier], any())
+            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier])
         )
           .thenReturn(Future(mockCredentials))
 
@@ -164,9 +178,9 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
           .thenReturn(mockMutators)
 
         when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any()))
-          .thenReturn(Future.successful(Ok("").withHeaders(HeaderTags.ETAG -> "1", HeaderTags.X_TXID -> "0")))
+          .thenReturn(Future.successful(Ok("").withHeaders(npsHeaders.toSeq: _*)))
 
-        when(mcysgnc.configuration.cyEnabled).thenReturn(true)
+        when(mcysgnc.pbikConfig.cyEnabled).thenReturn(true)
 
         mcysgnc
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package controllers
 
 import com.google.inject.Inject
+import config.PbikConfig
 import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
@@ -24,6 +25,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 class StaticNPSController @Inject() (
+  val pbikConfig: PbikConfig,
   val tierConnector: HmrcTierConnectorWrapped,
   authenticate: MinimalAuthAction,
   controllerUtils: ControllerUtils,
@@ -31,7 +33,7 @@ class StaticNPSController @Inject() (
 ) extends BackendController(cc) {
 
   def getBenefitTypes(year: Int): Action[AnyContent] = authenticate.async { implicit request =>
-    val url = s"${controllerUtils.baseURL}/$year/${controllerUtils.getBenefitTypesPath}"
+    val url = s"${pbikConfig.baseURL}/$year/${pbikConfig.getBenefitTypesPath}"
     controllerUtils.generateResultBasedOnStatus(tierConnector.retrieveDataGet(url)(hc))
   }
 

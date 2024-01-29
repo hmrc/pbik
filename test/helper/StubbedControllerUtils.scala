@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,24 @@
 
 package helper
 
+import config.PbikConfig
 import connectors.HmrcTierConnectorWrapped
 import controllers.utils.ControllerUtils
 import models.PbikCredentials
-import play.api.Configuration
-import play.api.libs.json
-import play.api.mvc.{AnyContent, Request}
+import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class StubbedControllerUtils @Inject() (configuration: Configuration) extends ControllerUtils(configuration) {
+class StubbedControllerUtils @Inject() (pbikConfig: PbikConfig) extends ControllerUtils(pbikConfig) {
 
   override def retrieveNPSCredentials(tierConnector: HmrcTierConnectorWrapped, year: Int, empRef: String)(implicit
-    hc: HeaderCarrier,
-    formats: json.Format[PbikCredentials]
+    hc: HeaderCarrier
   ): Future[PbikCredentials] =
     Future.successful(new PbikCredentials(0, 0, 0, "", ""))
 
-  override def getNPSMutatorSessionHeader(implicit request: Request[AnyContent]): Map[String, String] =
+  override def getNPSMutatorSessionHeader(implicit request: Request[_]): Map[String, String] =
     Map.empty[String, String]
 }

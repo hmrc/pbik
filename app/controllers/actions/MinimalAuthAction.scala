@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.google.inject.ImplementedBy
 import play.api.Logging
 import play.api.mvc.Results._
 import play.api.mvc._
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
@@ -27,23 +28,33 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
+case class AuthenticatedRequest[A](request: Request[A], userPID: String) extends WrappedRequest[A](request)
+
 class MinimalAuthActionImpl @Inject() (val authConnector: AuthConnector, val parser: BodyParsers.Default)(implicit
   val executionContext: ExecutionContext
 ) extends MinimalAuthAction
     with AuthorisedFunctions
     with Logging {
-  override protected def refine[A](request: Request[A]): Future[Either[Result, Request[A]]] = {
+  override protected def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
-    implicit val hc: HeaderCarrier =
-      HeaderCarrierConverter.fromRequest(request.withHeaders(request.headers))
-    authorised() {
-      Future.successful(Right(request))
-    }.recover { case t: Throwable =>
-      logger.debug("Debug info - " + t.getMessage)
-      Left(Unauthorized)
-    }
+    authorised()
+      .retrieve(credentials) {
+        case Some(value) =>
+          val userPid: String = value.providerId
+          Future.successful(Right(AuthenticatedRequest(request, userPid)))
+
+        case None =>
+          throw new RuntimeException("No user PID found")
+      }
+      .recover { case t: Throwable =>
+        logger.debug("Debug info - " + t.getMessage)
+        Left(Unauthorized)
+      }
   }
 }
 
 @ImplementedBy(classOf[MinimalAuthActionImpl])
-trait MinimalAuthAction extends ActionBuilder[Request, AnyContent] with ActionRefiner[Request, Request]
+trait MinimalAuthAction
+    extends ActionBuilder[AuthenticatedRequest, AnyContent]
+    with ActionRefiner[Request, AuthenticatedRequest]
