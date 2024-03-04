@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package controllers
+package helper
 
 import controllers.actions.MinimalAuthAction
-import helper.TestMinimalAuthAction
+import models.Bik
+import models.v1.IabdType
 import org.scalatest.TestSuite
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
@@ -41,13 +43,15 @@ trait FakePBIKApplication extends GuiceOneAppPerSuite {
     "sessionId"                                   -> "a-session-id"
   )
 
-  val sampleBikJson: String =
-    """[
-      |{"iabdType" : "30", "status" : 10, "eilCount" : 0},
-      |{"iabdType" : "31", "status" : 10, "eilCount" : 0},
-      |{"iabdType" : "47", "status" : 10, "eilCount" : 0}
-      |]
-    """.stripMargin
+  private val QUERY_STATUS: Int = 10
+
+  val biks: Seq[Bik] = Seq(
+    Bik(IabdType.MedicalInsurance.id.toString, QUERY_STATUS),
+    Bik(IabdType.CarBenefit.id.toString, QUERY_STATUS),
+    Bik(IabdType.OtherItems.id.toString, QUERY_STATUS)
+  )
+
+  val sampleBikJson: String = Json.toJson(biks).toString()
 
   def mockrequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest().withSession(

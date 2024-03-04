@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package helper
+package controllers.actions
 
-import controllers.actions.{AuthenticatedRequest, MinimalAuthAction}
-import play.api.mvc.{BodyParsers, Request, Result}
+import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.auth.core.authorise.Predicate
+import uk.gov.hmrc.auth.core.retrieve.Retrieval
+import uk.gov.hmrc.http.HeaderCarrier
 
-import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class TestMinimalAuthAction @Inject() (val parser: BodyParsers.Default)(implicit val executionContext: ExecutionContext)
-    extends MinimalAuthAction {
-  override protected def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] =
-    Future.successful(Right(AuthenticatedRequest(request, "1234567")))
+class FakeFailingAuthConnector(exceptionToReturn: Throwable) extends AuthConnector {
+
+  override def authorise[A](
+    predicate: Predicate,
+    retrieval: Retrieval[A]
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] =
+    Future.failed(exceptionToReturn)
+
 }

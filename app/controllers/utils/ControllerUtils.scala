@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,67 @@
 
 package controllers.utils
 
+import config.PbikConfig
 import connectors.HmrcTierConnectorWrapped
-import models.{EiLPerson, HeaderTags, PbikCredentials, PbikError}
+import models.v1.NPSError
+import models.{HeaderTags, PbikCredentials, PbikError}
+import play.api.Logging
 import play.api.http.Status.OK
-import play.api.libs.json
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Request, Result}
-import play.api.{Configuration, Logging}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import java.net.URLDecoder
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
-class ControllerUtils @Inject() (configuration: Configuration)(implicit val executionContext: ExecutionContext)
-    extends URIInformation(configuration)
-    with Logging {
+class ControllerUtils @Inject() (pbikConfig: PbikConfig)(implicit val executionContext: ExecutionContext)
+    extends Logging {
 
+  //new error handlers
+  private def responseToNPSError(response: HttpResponse) = {
+    val defaultCode = s"${response.status}.xxx"
+
+    Try(response.json) match {
+      case Failure(_)    =>
+        logger.error(
+          s"[GatewayNPSController][responseToNPSError] Not json body defaulting to $defaultCode"
+        )
+        PbikError(defaultCode)
+      case Success(json) =>
+        json.asOpt[NPSError] match {
+          case Some(error) =>
+            logger.error(
+              s"[GatewayNPSController][responseToNPSError] NPS Error code: ${error.code} message: ${error.reason}"
+            )
+            PbikError(error.code)
+          case None        =>
+            logger.error(
+              s"[GatewayNPSController][responseToNPSError] Failed to convert to NPS error code defaulting to $defaultCode"
+            )
+            PbikError(defaultCode)
+        }
+    }
+  }
+
+  def mapResponseToResult(wsResponse: Future[HttpResponse]): Future[Result] = wsResponse.map { response =>
+    response.status match {
+      case OK =>
+        val headers: Map[String, String] = Map(
+          HeaderTags.ETAG   -> response.header(HeaderTags.ETAG).getOrElse("0"),
+          HeaderTags.X_TXID -> response.header(HeaderTags.X_TXID).getOrElse("1")
+        )
+
+        Ok(response.body).withHeaders(headers.toSeq: _*)
+      case _  =>
+        val pbikError: PbikError = responseToNPSError(response)
+        new Status(response.status)(Json.toJson(pbikError))
+    }
+  }
+
+  //old error handlers
   private val appStatusMessageRegex = "[0-9]+"
   private val defaultError          = "10001"
 
@@ -65,7 +108,7 @@ class ControllerUtils @Inject() (configuration: Configuration)(implicit val exec
             val error    = PbikError(msgValue)
             //TODO why we are returning error as 200, in both branches why in second we dont turn it into 500 or 400?
             if (error.errorCode == "63082") {
-              Ok(Json.toJson(List[EiLPerson]()))
+              Ok(Json.toJson(List[String]())) // defaults to empty person list but empty string will work as well
             } else {
               new Status(response.status)(Json.toJson(error))
             }
@@ -87,13 +130,10 @@ class ControllerUtils @Inject() (configuration: Configuration)(implicit val exec
     }
 
   def retrieveNPSCredentials(tierConnector: HmrcTierConnectorWrapped, year: Int, empRef: String)(implicit
-    hc: HeaderCarrier,
-    formats: json.Format[PbikCredentials]
+    hc: HeaderCarrier
   ): Future[PbikCredentials] = {
-
-    val keyparts = extractEmployerRefParts(empRef)
-    retrieveCrendtialsFromNPS(tierConnector, year, keyparts._1, keyparts._2)
-
+    val tuple = extractEmployerRefParts(empRef)
+    retrieveCredentialsFromNPS(tierConnector, year, tuple._1, tuple._2)
   }
 
   def extractEmployerRefParts(empRef: String): (String, Int) = {
@@ -104,26 +144,26 @@ class ControllerUtils @Inject() (configuration: Configuration)(implicit val exec
     (paye_scheme_type, employer_number)
   }
 
-  def retrieveCrendtialsFromNPS(
+  def retrieveCredentialsFromNPS(
     tierConnector: HmrcTierConnectorWrapped,
     year: Int,
     employer_code: String,
     paye_scheme_type: Int
-  )(implicit hc: HeaderCarrier, formats: json.Format[PbikCredentials]): Future[PbikCredentials] =
-    tierConnector.retrieveDataGet(s"$baseURL/$year/$employer_code/$paye_scheme_type")(hc) map { result: HttpResponse =>
-      result.json.validate[PbikCredentials].asOpt.get
+  )(implicit hc: HeaderCarrier): Future[PbikCredentials] =
+    tierConnector.retrieveDataGet(s"${pbikConfig.baseURL}/$year/$employer_code/$paye_scheme_type")(hc) map {
+      result: HttpResponse =>
+        result.json.validate[PbikCredentials].asOpt.get
     }
 
-  def getNPSMutatorSessionHeader(implicit request: Request[AnyContent]): Map[String, String] =
-    if (request.headers.get(HeaderTags.ETAG).isDefined) {
-      Map(
-        (HeaderTags.ETAG, request.headers.get(HeaderTags.ETAG).getOrElse("0")),
-        (HeaderTags.X_TXID, request.headers.get(HeaderTags.X_TXID).getOrElse("1"))
-      )
-    } else {
-      Map[String, String]()
+  def getNPSMutatorSessionHeader(implicit request: Request[_]): Map[String, String] =
+    request.headers.get(HeaderTags.ETAG) match {
+      case Some(etag) =>
+        val txid = request.headers.get(HeaderTags.X_TXID).getOrElse(HeaderTags.X_TXID_DEFAULT_VALUE)
+        HeaderTags.createResponseHeaders(etag, txid)
+      case None       =>
+        Map[String, String]()
     }
 
-  def decode(encodedEmpRef: String): String = URLDecoder.decode(encodedEmpRef, "UTF-8")
+  private def decode(encodedEmpRef: String): String = URLDecoder.decode(encodedEmpRef, "UTF-8")
 
 }

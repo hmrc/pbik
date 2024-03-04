@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ package controllers
 import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
-import helper.{StubbedControllerUtils, TestMinimalAuthAction}
+import helper.{FakePBIKApplication, StubbedControllerUtils, TestMinimalAuthAction}
+import models.v1.BenefitListUpdateRequest
+import models.{Bik, PbikCredentials}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -30,6 +32,7 @@ import play.api.http.Status.NOT_IMPLEMENTED
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.Request
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.time.TaxYear
@@ -60,9 +63,21 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
 
     when(gnc.tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier]))
       .thenReturn(Future.successful(new FakeResponse))
-    when(gnc.tierConnector.retrieveDataPost(any[Map[String, String]], anyString, any[JsValue])(any[HeaderCarrier]))
+    when(
+      gnc.tierConnector.retrieveDataPost(anyString, any[JsValue])(
+        any[HeaderCarrier],
+        any[Request[_]]
+      )
+    )
       .thenReturn(Future.successful(new FakeResponse))
 
+    when(gnc.tierConnector.getRegisteredBenefits(any[PbikCredentials], anyString, anyInt())(any[HeaderCarrier]))
+      .thenReturn(Future.successful(new FakeResponse))
+    when(
+      gnc.tierConnector
+        .updateBenefitTypes(anyString, any[BenefitListUpdateRequest], anyString())(any[HeaderCarrier], any[Request[_]])
+    )
+      .thenReturn(Future.successful(new FakeResponse))
     gnc
   }
 
@@ -70,8 +85,9 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
     " parse a response correctly and not mutate the returned response body " in {
       val gateway = StubbedGateway
       val result  = gateway.getRegisteredBenefits("123/TEST1", 2015).apply(mockrequest)
-      status(result)          must be(OK)
-      contentAsString(result) must be(sampleBikJson)
+
+      status(result)                     must be(OK)
+      contentAsJson(result).as[Seq[Bik]] must be(biks)
     }
   }
 

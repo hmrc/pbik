@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package helper
+package models.v1
 
-import controllers.actions.{AuthenticatedRequest, MinimalAuthAction}
-import play.api.mvc.{BodyParsers, Request, Result}
+import models.v1.IabdType.IabdType
+import models.v1.PbikAction.PbikAction
+import play.api.libs.json.{Format, Json}
 
-import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+case class BenefitInKindRequest(
+  iabdType: IabdType,
+  payrolledBenefitInKindAction: PbikAction,
+  isAgentSubmission: Boolean
+) {
+  override def equals(obj: Any): Boolean =
+    obj.isInstanceOf[BenefitInKindRequest] && this.iabdType == obj.asInstanceOf[BenefitInKindRequest].iabdType
 
-class TestMinimalAuthAction @Inject() (val parser: BodyParsers.Default)(implicit val executionContext: ExecutionContext)
-    extends MinimalAuthAction {
-  override protected def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] =
-    Future.successful(Right(AuthenticatedRequest(request, "1234567")))
+  override def hashCode: Int = iabdType.hashCode
+}
+
+object BenefitInKindRequest {
+  implicit val formats: Format[BenefitInKindRequest] = Json.format[BenefitInKindRequest]
 }

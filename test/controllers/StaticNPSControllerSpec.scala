@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package controllers
 import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
-import helper.{StubbedControllerUtils, TestMinimalAuthAction}
+import helper.{FakePBIKApplication, StubbedControllerUtils, TestMinimalAuthAction}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -44,7 +44,7 @@ class StaticNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKAp
 
   class FakeResponse extends HttpResponse {
     override val allHeaders: Map[String, Seq[String]] = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
-    override def status                               = 200
+    override def status: Int                          = 200
     override val json: JsValue                        = Json.parse(sampleBikJson)
     override val body: String                         = sampleBikJson
   }

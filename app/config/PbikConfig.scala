@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,42 @@
 
 package config
 
-import javax.inject.Inject
+import models.PbikCredentials
 import play.api.Configuration
 
-class PbikConfig @Inject() (configuration: Configuration) {
+import javax.inject.Inject
 
-  val cyEnabled: Boolean = configuration.get[Boolean]("cymode.enabled")
+class PbikConfig @Inject() (conf: Configuration) {
+
+  private def getServiceUrl(serviceName: String): String = {
+    val host     = conf.get[String](s"microservice.services.$serviceName.host")
+    val port     = conf.get[String](s"microservice.services.$serviceName.port")
+    val protocol = conf.get[String](s"microservice.services.$serviceName.protocol")
+
+    s"$protocol://$host:$port"
+  }
+
+  val cyEnabled: Boolean = conf.get[Boolean]("cymode.enabled")
+
+  val serviceOriginatorIdKey: String = conf.get[String]("microservice.services.nps.originatoridkey")
+  val serviceOriginatorId: String    = conf.get[String]("microservice.services.nps.originatoridvalue")
+
+  val serviceOriginatorIdKeyV1: String = conf.get[String]("microservice.services.nps.originatoridkey_v1")
+  val serviceOriginatorIdV1: String    = conf.get[String]("microservice.services.nps.originatoridvalue_v1")
+
+  val getBenefitTypesPath: String = "getbenefittypes"
+  val exclusionPath: String       = "exclusion"
+  val addExclusionPath: String    = "exclusion/update"
+  val removeExclusionPath: String = "exclusion/remove"
+
+  val baseURL: String = s"${getServiceUrl("nps")}/nps-hod-service/services/nps/employer/payroll-bik"
+
+  private val baseNPSJsonURL: String = s"${getServiceUrl("nps")}/nps-json-service/nps/v1/api/employer"
+
+  def getRegisteredBenefitsPath(credentials: PbikCredentials, year: Int): String =
+    s"$baseNPSJsonURL/${credentials.employerNumber}/payrolled-benefits-in-kind/$year/${credentials.payeSchemeType}/${credentials.payeSequenceNumber}"
+
+  def putRegisteredBenefitsPath(credentials: PbikCredentials, year: Int): String =
+    s"$baseNPSJsonURL/${credentials.employerNumber}/payrolled-benefits-in-kind/$year/${credentials.payeSchemeType}/${credentials.payeSequenceNumber}"
 
 }

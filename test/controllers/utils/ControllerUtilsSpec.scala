@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.utils
 
 import connectors.HmrcTierConnectorWrapped
-import controllers.utils.{ControllerUtils, URIInformation}
-import helper.MockURIInformation
-import models.{HeaderTags, PbikCredentials}
+import controllers.actions.AuthenticatedRequest
+import helper.FakePBIKApplication
+import models.v1.NPSError
+import models.{HeaderTags, PbikCredentials, PbikError}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import play.api.Application
-import play.api.inject._
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{AnyContent, Request}
 import play.api.test.FakeRequest
@@ -38,61 +36,35 @@ import scala.concurrent.Future
 
 class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplication {
 
-  implicit lazy override val app: Application = new GuiceApplicationBuilder()
-    .configure(config)
-    .overrides(bind(classOf[URIInformation]).to(classOf[MockURIInformation]))
-    .build()
+  val testRequestBody: JsValue                                        = Json.toJson(List.empty[String])
+  implicit val request: Request[AnyContent]                           = FakeRequest().withJsonBody(testRequestBody)
+  implicit val authenticatedRequest: AuthenticatedRequest[AnyContent] = AuthenticatedRequest(request, "userpid")
+  implicit val formats: OFormat[PbikCredentials]                      = Json.format[PbikCredentials]
 
-  val testRequestBody: JsValue                   = Json.toJson(List.empty[String])
-  implicit val request: Request[AnyContent]      = FakeRequest().withJsonBody(testRequestBody)
-  implicit val formats: OFormat[PbikCredentials] = Json.format[PbikCredentials]
+  val year: Int                    = 2014
+  val employer_number_code: String = "Mock-Employer-Number-Code"
+  val paye_scheme_type: Int        = 1000
+  val mockedBaseUrl: String        = "baseUrl"
+  val urlExtension: String         = "urlExtension"
 
-  val year                 = 2014
-  val employer_number_code = "Mock-Employer-Number-Code"
-  val paye_scheme_type     = 1000
-  val mockedBaseUrl        = "baseUrl"
-  val urlExtension         = "urlExtension"
+  val mockCredentials: PbikCredentials = PbikCredentials(1, 2, 3, "aoReference", "payeSchemeOperatorName")
 
-  val mockCredentials: PbikCredentials                   = PbikCredentials(1, 2, 3, "aoReference", "payeSchemeOperatorName")
-  class FakeResponse extends HttpResponse {
-    override val allHeaders: Map[String, Seq[String]] = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
-    override def status                               = 200
-    override val json: JsValue                        = Json.toJson(mockCredentials)
-    override val body: String                         = Json.toJson(mockCredentials).toString()
-  }
-  //TODO refine when more info about statuses is available
-  val mockWsResponseStatus200: HttpResponse              = mock[HttpResponse]
-  val mockWsResponseStatus200WithErrorBody: HttpResponse = mock[HttpResponse]
-  val mockWsResponseStatus404: HttpResponse              = mock[HttpResponse]
+  def responseStatus200WithErrorBody(body: String): HttpResponse = HttpResponse(OK, body)
 
-  when(mockWsResponseStatus200.status).thenReturn(200)
-  when(mockWsResponseStatus200.body).thenReturn("Body of response with status 200")
-  when(mockWsResponseStatus200.headers).thenReturn(Map.empty)
-  when(mockWsResponseStatus200.header(any())).thenCallRealMethod()
-
-  when(mockWsResponseStatus404.status).thenReturn(404)
-  when(mockWsResponseStatus404.body).thenReturn("Body of response with status 404")
-  when(mockWsResponseStatus404.headers).thenReturn(Map.empty)
-  when(mockWsResponseStatus404.header(any())).thenCallRealMethod()
-
-  val mockHmrcTierConnectorWrapped: HmrcTierConnectorWrapped = mock[HmrcTierConnectorWrapped]
-
-  val mockWSResponse: HttpResponse = mock[HttpResponse]
-  when(mockHmrcTierConnectorWrapped.retrieveDataGet(anyString())(any()))
-    .thenReturn(Future.successful(mockWSResponse))
-
-  when(mockWSResponse.json) thenReturn Json.toJson(mockCredentials)
+  val responseStatus200: HttpResponse = HttpResponse(OK, "Body of response with status 200")
+  val responseStatus404: HttpResponse = HttpResponse(NOT_FOUND, "Body of response with status 404")
 
   def mockControllerUtils: ControllerUtils = app.injector.instanceOf[ControllerUtils]
 
   val mockTierConnector: HmrcTierConnectorWrapped = mock[HmrcTierConnectorWrapped]
-  when(mockTierConnector.retrieveDataGet(anyString)(any[HeaderCarrier])).thenReturn(Future.successful(new FakeResponse))
+  when(mockTierConnector.retrieveDataGet(anyString)(any[HeaderCarrier]))
+    .thenReturn(Future.successful(HttpResponse(OK, Json.toJson(mockCredentials).toString())))
 
   "The valid Credential check" should {
     "Return valid credentials from NPS" in {
       val result = await(
         mockControllerUtils
-          .retrieveCrendtialsFromNPS(mockHmrcTierConnectorWrapped, year, employer_number_code, paye_scheme_type)
+          .retrieveCredentialsFromNPS(mockTierConnector, year, employer_number_code, paye_scheme_type)
       )
       result must be(mockCredentials)
     }
@@ -100,7 +72,7 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
 
   "The status to response map" should {
     "Successfully return a response with status 200" in {
-      val result = mockControllerUtils.generateResultBasedOnStatus(Future(mockWsResponseStatus200))
+      val result = mockControllerUtils.generateResultBasedOnStatus(Future(responseStatus200))
       contentAsString(result) must be("Body of response with status 200")
     }
 
@@ -108,11 +80,8 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
       val failedResponse =
         "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";63082\",\"requestUri\":\"\"}"
 
-      when(mockWsResponseStatus200WithErrorBody.status).thenReturn(200)
-      when(mockWsResponseStatus200WithErrorBody.body).thenReturn(failedResponse)
-      when(mockWsResponseStatus200WithErrorBody.headers).thenReturn(Map.empty)
-      when(mockWsResponseStatus200WithErrorBody.header(any())).thenCallRealMethod()
-      val result = mockControllerUtils.generateResultBasedOnStatus(Future(mockWsResponseStatus200WithErrorBody))
+      val result =
+        mockControllerUtils.generateResultBasedOnStatus(Future(responseStatus200WithErrorBody(failedResponse)))
       status(result)          must be(OK)
       contentAsString(result) must be("[]")
     }
@@ -121,11 +90,8 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
       val failedResponse =
         "{\"message\":\"Internal Server Error\",\"statusCode\":500,\"appStatusMessage\":\";1234567890\",\"requestUri\":\"\"}"
 
-      when(mockWsResponseStatus200WithErrorBody.status).thenReturn(200)
-      when(mockWsResponseStatus200WithErrorBody.body).thenReturn(failedResponse)
-      when(mockWsResponseStatus200WithErrorBody.headers).thenReturn(Map.empty)
-      when(mockWsResponseStatus200WithErrorBody.header(any())).thenCallRealMethod()
-      val result = mockControllerUtils.generateResultBasedOnStatus(Future(mockWsResponseStatus200WithErrorBody))
+      val result =
+        mockControllerUtils.generateResultBasedOnStatus(Future(responseStatus200WithErrorBody(failedResponse)))
       status(result)          must be(OK)
       contentAsString(result) must be("{\"errorCode\":\"1234567890\"}")
     }
@@ -133,7 +99,7 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
 
   "The status to response map" should {
     "Successfully return a response with status 404" in {
-      val result = mockControllerUtils.generateResultBasedOnStatus(Future(mockWsResponseStatus404))
+      val result = mockControllerUtils.generateResultBasedOnStatus(Future(responseStatus404))
       contentAsString(result) must be("Body of response with status 404")
 
     }
@@ -156,7 +122,7 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
 
   "The controller utils " should {
     "return valid credentials when parsing a marshalled Pbikcredentials object from json " in {
-      val result = await(mockControllerUtils.retrieveCrendtialsFromNPS(mockTierConnector, 2015, "TEST1", 123))
+      val result = await(mockControllerUtils.retrieveCredentialsFromNPS(mockTierConnector, 2015, "TEST1", 123))
       result.aoReference mustBe "aoReference"
     }
   }
@@ -194,18 +160,22 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
 
   "When NPS returns response " should {
     "with headers return the ETAG and TXID headers" in {
-
-      val npsRequestBody                        = Json.toJson(List.empty[String])
       implicit val request: Request[AnyContent] = FakeRequest()
-        .withJsonBody(npsRequestBody)
         .withHeaders(HeaderTags.ETAG -> "10", HeaderTags.X_TXID -> "1")
 
       val result                                = mockControllerUtils.getNPSMutatorSessionHeader(request)
-      result must be(Map("ETag" -> "10", "X-TXID" -> "1"))
+      result must be(Map(HeaderTags.ETAG -> "10", HeaderTags.X_TXID -> "1"))
+    }
+
+    "with headers return the ETAG and no TXID headers" in {
+      implicit val request: Request[AnyContent] = FakeRequest()
+        .withHeaders(HeaderTags.ETAG -> "10")
+
+      val result                                = mockControllerUtils.getNPSMutatorSessionHeader(request)
+      result must be(Map(HeaderTags.ETAG -> "10", HeaderTags.X_TXID -> HeaderTags.X_TXID_DEFAULT_VALUE))
     }
 
     "return None when there is no ETAG value" in {
-
       val npsRequestBody                        = Json.toJson(List.empty[String])
       implicit val request: Request[AnyContent] = FakeRequest()
         .withJsonBody(npsRequestBody)
@@ -216,4 +186,67 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
     }
   }
 
+  ".mapResponseToResult" when {
+
+    "the response status is 200" should {
+      "return an OK result with the response body and default headers" in {
+        val response        = HttpResponse(OK, "response body")
+        val expectedHeaders = Map(
+          HeaderTags.ETAG   -> HeaderTags.ETAG_DEFAULT_VALUE,
+          HeaderTags.X_TXID -> HeaderTags.X_TXID_DEFAULT_VALUE
+        )
+
+        val result = mockControllerUtils.mapResponseToResult(Future.successful(response))
+
+        status(result) mustBe OK
+        contentAsString(result) mustBe "response body"
+        headers(result) mustBe expectedHeaders
+      }
+
+      "return an OK result with the response body and headers" in {
+        val expectedHeaders        = Map(
+          HeaderTags.ETAG   -> "10",
+          HeaderTags.X_TXID -> "1"
+        )
+        val inputHeaders           = expectedHeaders.map { case (k, v) => k -> Seq(v) }
+        val response: HttpResponse = HttpResponse(OK, "response body", inputHeaders)
+
+        val result = mockControllerUtils.mapResponseToResult(Future.successful(response))
+
+        status(result) mustBe OK
+        contentAsString(result) mustBe "response body"
+        headers(result) mustBe expectedHeaders
+      }
+    }
+
+    "the response status is 400" should {
+      "return a BadRequest result with the response non json body" in {
+        val response = HttpResponse(BAD_REQUEST, "response body")
+
+        val result = mockControllerUtils.mapResponseToResult(Future.successful(response))
+
+        status(result) mustBe BAD_REQUEST
+        contentAsString(result) mustBe Json.toJson(PbikError(s"$BAD_REQUEST.xxx")).toString()
+      }
+
+      "return a BadRequest result with the response is json body but not NPSError" in {
+        val response = HttpResponse(BAD_REQUEST, """{"key": "value"}""")
+
+        val result = mockControllerUtils.mapResponseToResult(Future.successful(response))
+
+        status(result) mustBe BAD_REQUEST
+        contentAsString(result) mustBe Json.toJson(PbikError(s"$BAD_REQUEST.xxx")).toString()
+      }
+
+      "return a BadRequest result with the response is NPSError json body" in {
+        val response = HttpResponse(BAD_REQUEST, Json.toJson(NPSError("reason", "code")).toString())
+
+        val result = mockControllerUtils.mapResponseToResult(Future.successful(response))
+
+        status(result) mustBe BAD_REQUEST
+        contentAsString(result) mustBe Json.toJson(PbikError("code")).toString()
+      }
+    }
+
+  }
 }

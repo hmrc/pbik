@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package helper
+package models.v1
 
-import controllers.utils.URIInformation
-import play.api.Configuration
+import models.v1
+import play.api.libs.json.{Format, Json}
 
-import javax.inject.Inject
+object PbikAction extends Enumeration {
 
-class MockURIInformation @Inject() (configuration: Configuration) extends URIInformation(configuration) {
+  type PbikAction = Value
 
-  val mockedBaseUrl                    = "baseUrl"
-  override lazy val baseURL: String    = mockedBaseUrl
-  override lazy val serviceUrl: String = mockedBaseUrl
+  val NoAction: v1.PbikAction.Value                        = Value(0, "No Action")
+  val ReinstatePayrolledBenefitInKind: v1.PbikAction.Value = Value(30, "Reinstate Payrolled Benefit In Kind (PBIK)")
+  val RemovePayrolledBenefitInKind: v1.PbikAction.Value    = Value(40, "Remove Payrolled Benefit In Kind (PBIK)")
+
+  implicit val formats: Format[PbikAction] = Json.formatEnum(this)
 
 }

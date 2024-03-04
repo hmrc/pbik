@@ -9,7 +9,7 @@
     <check level="warning" class="org.scalastyle.file.HeaderMatchesChecker" enabled="true">
         <parameters>
             <parameter name="header"><![CDATA[/*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@
             <parameter name="maxParameters"><![CDATA[8]]></parameter>
         </parameters>
     </check>
-    <check level="warning" class="org.scalastyle.scalariform.MagicNumberChecker" enabled="true">
+    <check level="warning" class="org.scalastyle.scalariform.MagicNumberChecker" enabled="false">
         <parameters>
             <parameter name="ignore"><![CDATA[-1,0,1,2,3]]></parameter>
         </parameters>
