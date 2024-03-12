@@ -19,14 +19,13 @@ package controllers
 import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
-import helper.{CYEnabledSetup, FakePBIKApplication, TestMinimalAuthAction}
+import helper.{FakePBIKApplication, TestMinimalAuthAction}
 import models.{HeaderTags, PbikCredentials}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Application
-import play.api.http.Status.NOT_IMPLEMENTED
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
@@ -101,92 +100,11 @@ class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplicatio
       headers(result)         must be(npsHeaders)
     }
 
-    "NotImplemented when cy == current year " in {
-      val result = mockGatewayNPSController.updateBenefitTypes(empref, cy)(request)
-      status(result) must be(NOT_IMPLEMENTED)
-    }
-
     "Successfully update registered exclusions" in {
       val result = mockGatewayNPSController.updateExclusionsForEmployer(empref, year, ibdtype)(request)
       status(result)          must be(OK)
       contentAsString(result) must be("")
       headers(result)         must be(npsHeaders)
-    }
-  }
-
-  "When CY mode is disabled and a call is made to update a benefit for that year, the controller " should {
-    "not allow the call to proceed " in {
-      val valid = mockGatewayNPSController.cyCheck(TaxYear.current.currentYear)
-      valid must be(false)
-    }
-  }
-
-  "When CY mode is disabled and a call is made to update next year, the controller " should {
-    "allow the call to proceed " in {
-      val valid = mockGatewayNPSController.cyCheck(TaxYear.current.currentYear + 1)
-      valid must be(true)
-    }
-  }
-
-  "When CY mode is enabled and a call is made to update a benefit for that year, the controller " should {
-    "allow the call to proceed " in new CYEnabledSetup {
-      val injector: Injector = new GuiceApplicationBuilder()
-        .overrides(GuiceTestModule)
-        .injector()
-
-      val mockCYSupportedGatewayNPSController: GatewayNPSController = {
-        val mcysgnc = injector.instanceOf[GatewayNPSController]
-
-        when(
-          mcysgnc.controllerUtils
-            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier])
-        )
-          .thenReturn(Future(mockCredentials))
-
-        when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]]))
-          .thenReturn(mockMutators)
-
-        when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any()))
-          .thenReturn(Future.successful(Ok("").withHeaders(npsHeaders.toSeq: _*)))
-
-        when(mcysgnc.pbikConfig.cyEnabled).thenReturn(true)
-
-        mcysgnc
-      }
-
-      val valid: Boolean = mockCYSupportedGatewayNPSController.cyCheck(TaxYear.current.currentYear)
-      valid must be(true)
-    }
-  }
-
-  "When CY mode is enabled and a call is made to update the next year, the controller " should {
-    "allow the call to proceed " in new CYEnabledSetup {
-      val injector: Injector = new GuiceApplicationBuilder()
-        .overrides(GuiceTestModule)
-        .injector()
-
-      val mockCYSupportedGatewayNPSController: GatewayNPSController = {
-        val mcysgnc = injector.instanceOf[GatewayNPSController]
-
-        when(
-          mcysgnc.controllerUtils
-            .retrieveNPSCredentials(any(), anyInt, anyString)(any[HeaderCarrier])
-        )
-          .thenReturn(Future(mockCredentials))
-
-        when(mcysgnc.controllerUtils.getNPSMutatorSessionHeader(any[Request[AnyContent]]))
-          .thenReturn(mockMutators)
-
-        when(mcysgnc.controllerUtils.generateResultBasedOnStatus(any())(any()))
-          .thenReturn(Future.successful(Ok("").withHeaders(npsHeaders.toSeq: _*)))
-
-        when(mcysgnc.pbikConfig.cyEnabled).thenReturn(true)
-
-        mcysgnc
-      }
-
-      val valid: Boolean = mockCYSupportedGatewayNPSController.cyCheck(TaxYear.current.currentYear + 1)
-      valid must be(true)
     }
   }
 }
