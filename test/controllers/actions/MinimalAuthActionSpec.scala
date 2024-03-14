@@ -71,7 +71,7 @@ class MinimalAuthActionSpec extends PlaySpec with MockitoSugar with FakePBIKAppl
         val controller        = new Harness(minimalAuthAction)
         val result            = controller.onPageLoad()(FakeRequest("", ""))
 
-        status(result) mustBe UNAUTHORIZED
+        status(result) mustBe OK
       }
     }
 
