@@ -28,14 +28,12 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Application
 import play.api.http.Status
-import play.api.http.Status.NOT_IMPLEMENTED
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Request
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.time.TaxYear
 
 import scala.concurrent.Future
 
@@ -113,12 +111,6 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
       val result  = gateway.removeExclusionForEmployer("123/TEST1", 2015, 37).apply(mockrequest)
       status(result)          must be(OK)
       contentAsString(result) must be(sampleBikJson)
-    }
-
-    " NotImplemented when cy is current year " in {
-      val gateway = StubbedGateway
-      val result  = gateway.removeExclusionForEmployer("123/TEST1", TaxYear.current.currentYear, 37).apply(mockrequest)
-      status(result) must be(NOT_IMPLEMENTED)
     }
   }
 

@@ -31,8 +31,6 @@ class PbikConfig @Inject() (conf: Configuration) {
     s"$protocol://$host:$port"
   }
 
-  val cyEnabled: Boolean = conf.get[Boolean]("cymode.enabled")
-
   val serviceOriginatorIdKey: String = conf.get[String]("microservice.services.nps.originatoridkey")
   val serviceOriginatorId: String    = conf.get[String]("microservice.services.nps.originatoridvalue")
 
