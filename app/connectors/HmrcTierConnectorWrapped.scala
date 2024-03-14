@@ -41,7 +41,6 @@ class HmrcTierConnectorWrapped @Inject() (
 ) extends Logging {
 
   private val CORRELATION_HEADER: String = "CorrelationId"
-  private val USER_PID_HEADER: String    = "userPID"
   private val requestIdPattern: Regex    = """.*([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}).*""".r
 
   private def buildHeaders(correlationId: String): Seq[(String, String)] =
@@ -50,11 +49,10 @@ class HmrcTierConnectorWrapped @Inject() (
       CORRELATION_HEADER                -> correlationId
     )
 
-  private def buildHeadersV1(correlationId: String, userPID: String): Seq[(String, String)] =
+  private def buildHeadersV1(correlationId: String): Seq[(String, String)] =
     Seq(
       pbikConfig.serviceOriginatorIdKeyV1 -> pbikConfig.serviceOriginatorIdV1,
-      CORRELATION_HEADER                  -> correlationId,
-      USER_PID_HEADER                     -> userPID
+      CORRELATION_HEADER                  -> correlationId
     )
 
   def generateNewUUID: String = randomUUID.toString
@@ -100,13 +98,13 @@ class HmrcTierConnectorWrapped @Inject() (
 
   // new v1 api
 
-  def getRegisteredBenefits(credentials: PbikCredentials, userPID: String, year: Int)(implicit
+  def getRegisteredBenefits(credentials: PbikCredentials, year: Int)(implicit
     hc: HeaderCarrier
   ): Future[HttpResponse] = {
     val url = pbikConfig.getRegisteredBenefitsPath(credentials, year)
 
     val correlationId = getCorrelationId(hc)
-    http.GET[HttpResponse](url, headers = buildHeadersV1(correlationId, userPID)).recover { case ex =>
+    http.GET[HttpResponse](url, headers = buildHeadersV1(correlationId)).recover { case ex =>
       logger.error(
         s"[HmrcTierConnectorWrapped][getRegisteredBenefits] an exception occurred ${ex.getMessage}, when calling $url",
         ex
@@ -115,18 +113,14 @@ class HmrcTierConnectorWrapped @Inject() (
     }
   }
 
-  def updateBenefitTypes(
-    url: String,
-    bikToUpdateRequest: BenefitListUpdateRequest,
-    userPID: String
-  )(implicit
+  def updateBenefitTypes(url: String, bikToUpdateRequest: BenefitListUpdateRequest)(implicit
     hc: HeaderCarrier,
     request: Request[_]
   ): Future[HttpResponse] = {
     val requestBody   = Json.toJson(bikToUpdateRequest)
     val correlationId = getCorrelationId(hc)
     val npsHeaders    = controllerUtils.getNPSMutatorSessionHeader
-    val allHeaders    = buildHeadersV1(correlationId, userPID) ++ npsHeaders.toSeq
+    val allHeaders    = buildHeadersV1(correlationId) ++ npsHeaders.toSeq
     http.PUT[JsValue, HttpResponse](url, requestBody, allHeaders).recover { case ex =>
       logger.error(
         s"[HmrcTierConnectorWrapped][updateBenefitTypes] an exception occurred ${ex.getMessage}, when calling $url",

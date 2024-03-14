@@ -69,11 +69,11 @@ class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKA
     )
       .thenReturn(Future.successful(new FakeResponse))
 
-    when(gnc.tierConnector.getRegisteredBenefits(any[PbikCredentials], anyString, anyInt())(any[HeaderCarrier]))
+    when(gnc.tierConnector.getRegisteredBenefits(any[PbikCredentials], anyInt())(any[HeaderCarrier]))
       .thenReturn(Future.successful(new FakeResponse))
     when(
       gnc.tierConnector
-        .updateBenefitTypes(anyString, any[BenefitListUpdateRequest], anyString())(any[HeaderCarrier], any[Request[_]])
+        .updateBenefitTypes(anyString, any[BenefitListUpdateRequest])(any[HeaderCarrier], any[Request[_]])
     )
       .thenReturn(Future.successful(new FakeResponse))
     gnc

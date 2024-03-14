@@ -19,7 +19,7 @@ package connectors
 import config.PbikConfig
 import controllers.utils.ControllerUtils
 import helper.FakePBIKApplication
-import models.v1.{BenefitListUpdateRequest, PersonOptimisticLockRequest}
+import models.v1.{BenefitListUpdateRequest, EmployerOptimisticLockRequest}
 import models.{HeaderTags, PbikCredentials}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -197,7 +197,6 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
       "the HTTP GET request is successful" should {
         "return the HttpResponse" in new Setup {
           val headersResponse: Map[String, Seq[String]] = Map("key1" -> Seq("value1"))
-          val userPID: String                           = "userPID"
           val year: Int                                 = 2022
           val expectedResponse: HttpResponse            = HttpResponse(Status.OK, json = Json.toJson("Success"), headersResponse)
           when(
@@ -209,7 +208,7 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
           )
             .thenReturn(Future.successful(expectedResponse))
 
-          val result: HttpResponse = await(connector.getRegisteredBenefits(mockCredentials, userPID, year))
+          val result: HttpResponse = await(connector.getRegisteredBenefits(mockCredentials, year))
 
           result.status  shouldBe Status.OK
           result.body    shouldBe expectedResponse.json.toString()
@@ -219,7 +218,6 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
 
       "the HTTP GET request fails" should {
         "return an HttpResponse with the exception message" in new Setup {
-          val userPID: String          = "userPID"
           val year: Int                = 2022
           val exceptionMessage: String = "An error occurred"
           when(
@@ -231,7 +229,7 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
           )
             .thenReturn(Future.failed(new Exception(exceptionMessage)))
 
-          val result: HttpResponse = await(connector.getRegisteredBenefits(mockCredentials, userPID, year))
+          val result: HttpResponse = await(connector.getRegisteredBenefits(mockCredentials, year))
 
           result.status  shouldBe Status.OK
           result.body    shouldBe JsString(exceptionMessage).toString()
@@ -241,10 +239,7 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
     }
 
     ".updateBenefitTypes" when {
-      val lockRequest                                      = PersonOptimisticLockRequest(
-        mockCredentials.payeSchemeType.toString,
-        mockCredentials.employerNumber,
-        mockCredentials.payeSequenceNumber,
+      val lockRequest                                      = EmployerOptimisticLockRequest(
         HeaderTags.ETAG_DEFAULT_VALUE.toInt
       )
       val mockBikToUpdateRequest: BenefitListUpdateRequest = BenefitListUpdateRequest(List.empty, lockRequest)
@@ -266,7 +261,7 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
           )
             .thenReturn(Future.successful(expectedResponse))
 
-          val result: HttpResponse = await(connector.updateBenefitTypes(url, mockBikToUpdateRequest, "userPID"))
+          val result: HttpResponse = await(connector.updateBenefitTypes(url, mockBikToUpdateRequest))
 
           result.status  shouldBe Status.OK
           result.body    shouldBe expectedResponse.json.toString()
@@ -288,7 +283,7 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
           )
             .thenReturn(Future.failed(new Exception(exceptionMessage)))
 
-          val result: HttpResponse = await(connector.updateBenefitTypes(url, mockBikToUpdateRequest, "userPID"))
+          val result: HttpResponse = await(connector.updateBenefitTypes(url, mockBikToUpdateRequest))
 
           result.status  shouldBe Status.OK
           result.body    shouldBe JsString(exceptionMessage).toString()

@@ -16,7 +16,7 @@
 
 package helper
 
-import controllers.actions.{AuthenticatedRequest, MinimalAuthAction}
+import controllers.actions.MinimalAuthAction
 import play.api.mvc.{BodyParsers, Request, Result}
 
 import javax.inject.Inject
@@ -24,6 +24,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class TestMinimalAuthAction @Inject() (val parser: BodyParsers.Default)(implicit val executionContext: ExecutionContext)
     extends MinimalAuthAction {
-  override protected def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] =
-    Future.successful(Right(AuthenticatedRequest(request, "1234567")))
+  override protected def refine[A](request: Request[A]): Future[Either[Result, Request[A]]] =
+    Future.successful(Right(request))
 }

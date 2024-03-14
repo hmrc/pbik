@@ -17,9 +17,8 @@
 package controllers.utils
 
 import connectors.HmrcTierConnectorWrapped
-import controllers.actions.AuthenticatedRequest
 import helper.FakePBIKApplication
-import models.v1.NPSError
+import models.v1.{NPSError, NPSErrors}
 import models.{HeaderTags, PbikCredentials, PbikError}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito.when
@@ -36,10 +35,9 @@ import scala.concurrent.Future
 
 class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplication {
 
-  val testRequestBody: JsValue                                        = Json.toJson(List.empty[String])
-  implicit val request: Request[AnyContent]                           = FakeRequest().withJsonBody(testRequestBody)
-  implicit val authenticatedRequest: AuthenticatedRequest[AnyContent] = AuthenticatedRequest(request, "userpid")
-  implicit val formats: OFormat[PbikCredentials]                      = Json.format[PbikCredentials]
+  val testRequestBody: JsValue                   = Json.toJson(List.empty[String])
+  implicit val request: Request[AnyContent]      = FakeRequest().withJsonBody(testRequestBody)
+  implicit val formats: OFormat[PbikCredentials] = Json.format[PbikCredentials]
 
   val year: Int                    = 2014
   val employer_number_code: String = "Mock-Employer-Number-Code"
@@ -239,7 +237,7 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
       }
 
       "return a BadRequest result with the response is NPSError json body" in {
-        val response = HttpResponse(BAD_REQUEST, Json.toJson(NPSError("reason", "code")).toString())
+        val response = HttpResponse(BAD_REQUEST, Json.toJson(NPSErrors(List(NPSError("reason", "code")))).toString())
 
         val result = mockControllerUtils.mapResponseToResult(Future.successful(response))
 

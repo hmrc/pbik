@@ -21,7 +21,7 @@ import config.PbikConfig
 import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
 import controllers.utils.ControllerUtils
-import models.v1.{BenefitInKindRequest, BenefitListUpdateRequest, PersonOptimisticLockRequest}
+import models.v1.{BenefitInKindRequest, BenefitListUpdateRequest, EmployerOptimisticLockRequest}
 import models.{HeaderTags, PbikCredentials}
 import play.api.Logging
 import play.api.libs.json.Json
@@ -42,7 +42,7 @@ class GatewayNPSController @Inject() (
 
   def getRegisteredBenefits(empRef: String, year: Int): Action[AnyContent] = authenticate.async { implicit request =>
     controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef).flatMap { credentials: PbikCredentials =>
-      controllerUtils.mapResponseToResult(tierConnector.getRegisteredBenefits(credentials, request.userPID, year)(hc))
+      controllerUtils.mapResponseToResult(tierConnector.getRegisteredBenefits(credentials, year)(hc))
     }
   }
 
@@ -61,15 +61,12 @@ class GatewayNPSController @Inject() (
     controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
       val url                = pbikConfig.putRegisteredBenefitsPath(credentials, year)
       val headers            = controllerUtils.getNPSMutatorSessionHeader
-      val lockRequest        = PersonOptimisticLockRequest(
-        credentials.payeSchemeType.toString,
-        credentials.employerNumber,
-        credentials.payeSequenceNumber,
+      val lockRequest        = EmployerOptimisticLockRequest(
         headers.getOrElse(HeaderTags.ETAG, HeaderTags.ETAG_DEFAULT_VALUE).toInt
       )
       val bikToUpdateRequest = BenefitListUpdateRequest(biksToUpdate, lockRequest)
       controllerUtils.mapResponseToResult(
-        tierConnector.updateBenefitTypes(url, bikToUpdateRequest, request.userPID)(hc, request)
+        tierConnector.updateBenefitTypes(url, bikToUpdateRequest)(hc, request)
       )
     }
   }

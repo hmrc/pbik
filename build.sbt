@@ -3,6 +3,7 @@ ThisBuild / majorVersion := 5
 
 lazy val microservice = Project("pbik", file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
+  .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
   .settings(CodeCoverageSettings.settings)
   .settings(
     PlayKeys.playDefaultPort := 9351,

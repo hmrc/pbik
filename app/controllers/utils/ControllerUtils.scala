@@ -18,7 +18,7 @@ package controllers.utils
 
 import config.PbikConfig
 import connectors.HmrcTierConnectorWrapped
-import models.v1.NPSError
+import models.v1.NPSErrors
 import models.{HeaderTags, PbikCredentials, PbikError}
 import play.api.Logging
 import play.api.http.Status.OK
@@ -46,13 +46,13 @@ class ControllerUtils @Inject() (pbikConfig: PbikConfig)(implicit val executionC
         )
         PbikError(defaultCode)
       case Success(json) =>
-        json.asOpt[NPSError] match {
-          case Some(error) =>
+        json.asOpt[NPSErrors] match {
+          case Some(errors) =>
             logger.error(
-              s"[GatewayNPSController][responseToNPSError] NPS Error code: ${error.code} message: ${error.reason}"
+              s"[GatewayNPSController][responseToNPSError] NPS Errors: ${errors.toString}"
             )
-            PbikError(error.code)
-          case None        =>
+            PbikError(errors.failures.map(_.code).mkString(","))
+          case None         =>
             logger.error(
               s"[GatewayNPSController][responseToNPSError] Failed to convert to NPS error code defaulting to $defaultCode"
             )

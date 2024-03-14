@@ -18,13 +18,8 @@ package models.v1
 
 import play.api.libs.json.{Json, OFormat}
 
-case class PersonOptimisticLockRequest(
-  payeSchemeType: String,
-  employerNumber: Int,
-  payeSequenceNo: Int,
-  currentOptimisticLock: Int
-)
+case class NPSErrors(failures: List[NPSError])
 
-object PersonOptimisticLockRequest {
-  implicit val formats: OFormat[PersonOptimisticLockRequest] = Json.format[PersonOptimisticLockRequest]
+object NPSErrors {
+  implicit val formats: OFormat[NPSErrors] = Json.format[NPSErrors]
 }

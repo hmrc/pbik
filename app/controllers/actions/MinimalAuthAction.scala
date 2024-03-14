@@ -28,25 +28,16 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-case class AuthenticatedRequest[A](request: Request[A], userPID: String) extends WrappedRequest[A](request)
-
 class MinimalAuthActionImpl @Inject() (val authConnector: AuthConnector, val parser: BodyParsers.Default)(implicit
   val executionContext: ExecutionContext
 ) extends MinimalAuthAction
     with AuthorisedFunctions
     with Logging {
-  override protected def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
+  override protected def refine[A](request: Request[A]): Future[Either[Result, Request[A]]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
     authorised()
-      .retrieve(credentials) {
-        case Some(value) =>
-          val userPid: String = value.providerId
-          Future.successful(Right(AuthenticatedRequest(request, userPid)))
-
-        case None =>
-          throw new RuntimeException("No user PID found")
-      }
+      .retrieve(credentials)(_ => Future.successful(Right(request)))
       .recover { case t: Throwable =>
         logger.debug("Debug info - " + t.getMessage)
         Left(Unauthorized)
@@ -55,6 +46,4 @@ class MinimalAuthActionImpl @Inject() (val authConnector: AuthConnector, val par
 }
 
 @ImplementedBy(classOf[MinimalAuthActionImpl])
-trait MinimalAuthAction
-    extends ActionBuilder[AuthenticatedRequest, AnyContent]
-    with ActionRefiner[Request, AuthenticatedRequest]
+trait MinimalAuthAction extends ActionBuilder[Request, AnyContent] with ActionRefiner[Request, Request]
