@@ -98,34 +98,30 @@ class ControllerUtils @Inject() (pbikConfig: PbikConfig)(implicit val executionC
     wsResponse: Future[HttpResponse]
   )(implicit request: Request[AnyContent]): Future[Result] =
     wsResponse.map { response =>
-      response.status match {
-        case OK =>
-          if (response.body.contains("appStatusMessage")) {
-            logger.warn(
-              s"[ControllerUtils][generateResultBasedOnStatus] GenerateResultBasedOnStatus Response Failed status: ${response.status}"
-            )
-            val msgValue = extractUpstreamError(response.body)
-            val error    = PbikError(msgValue)
-            //TODO why we are returning error as 200, in both branches why in second we dont turn it into 500 or 400?
-            if (error.errorCode == "63082") {
-              Ok(Json.toJson(List[String]())) // defaults to empty person list but empty string will work as well
-            } else {
-              new Status(response.status)(Json.toJson(error))
-            }
-          } else {
-            val headers: Map[String, String] = Map(
-              HeaderTags.ETAG   -> response.header(HeaderTags.ETAG).getOrElse("0"),
-              HeaderTags.X_TXID -> response.header(HeaderTags.X_TXID).getOrElse("1")
-            )
+      if (response.body.contains("appStatusMessage")) {
+        logger.warn(
+          s"[ControllerUtils][generateResultBasedOnStatus] GenerateResultBasedOnStatus Response Failed status: ${response.status}"
+        )
+        val msgValue = extractUpstreamError(response.body)
+        val error    = PbikError(msgValue)
+        if (error.errorCode == "63082") {
+          Ok(Json.toJson(List[String]())) // defaults to empty person list but empty string will work as well
+        } else {
+          new Status(response.status)(Json.toJson(error))
+        }
+      } else if (response.status == OK && !response.body.contains("appStatusMessage")) {
+        val headers: Map[String, String] = Map(
+          HeaderTags.ETAG   -> response.header(HeaderTags.ETAG).getOrElse("0"),
+          HeaderTags.X_TXID -> response.header(HeaderTags.X_TXID).getOrElse("1")
+        )
 
-            Ok(response.body).withHeaders(headers.toSeq: _*)
-          }
-        case _  =>
-          logger.warn(
-            s"[ControllerUtils][generateResultBasedOnStatus] GenerateResultBasedOnStatus Response Failed status:${response.status}" +
-              s" json:body:${response.body} request:${request.body.asText}"
-          )
-          new Status(response.status)(response.body)
+        Ok(response.body).withHeaders(headers.toSeq: _*)
+      } else {
+        logger.warn(
+          s"[ControllerUtils][generateResultBasedOnStatus] GenerateResultBasedOnStatus Response Failed status:${response.status}" +
+            s" json:body:${response.body} request:${request.body.asText}"
+        )
+        new Status(response.status)(response.body)
       }
     }
 
