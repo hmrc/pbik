@@ -19,35 +19,6 @@ package models.v1
 import models.v1
 import play.api.libs.json.{Format, Json}
 
-/**
-  * string (EnumIabdtype)
-  * Enum: "Asset Transfer" "Assets" "Car Benefit" "Car Fuel Benefit" "Employer Provided Services"
-  * "Entertaining" "Expenses" "Income Tax Paid but not deducted from Director's Remuneration"
-  * "Medical Insurance" "Mileage" "Non-qualifying Relocation Expenses" "Other Items"
-  * "Payments on Employee's Behalf" "Qualifying Relocation Expenses" "Telephone"
-  * "Travel and Subsistence" "Van Benefit" "Van Fuel Benefit" "Vouchers and Credit Cards"
-  *
-  * IABDTYPE|START DATE|END DATE|DESCRIPTION|ACTIVE
-  * 00000040|01/01/1900|01/01/2078|Asset Transfer|1
-  * 00000048|01/01/1900|01/01/2078|Payments on Employee's Behalf|1
-  * 00000044|01/01/1900|01/01/2078|Mileage|1
-  * 00000031|01/01/1900|01/01/2078|Car Benefit|1
-  * 00000029|01/01/1900|01/01/2078|Car Fuel Benefit|1
-  * 00000035|01/01/1900|01/01/2078|Van Benefit|1
-  * 00000036|01/01/1900|01/01/2078|Van Fuel Benefit|1
-  * 00000030|01/01/1900|01/01/2078|Medical Insurance|1
-  * 00000050|01/01/1900|01/01/2078|Qualifying Relocation Expenses|0
-  * 00000008|01/01/1900|01/01/2078|Employer Provided Services|1
-  * 00000039|01/01/1900|01/01/2078|Assets|0
-  * 00000047|01/01/1900|01/01/2078|Other Items|1
-  * 00000052|01/01/1900|01/01/2078|Income Tax Paid but not deducted from Director's Remuneration|1
-  * 00000053|01/01/1900|01/01/2078|Travel and Subsistence|0
-  * 00000042|01/01/1900|01/01/2078|Entertaining|0
-  * 00000043|06/04/2017|01/01/2078|Expenses|1
-  * 00000032|01/01/1900|01/01/2078|Telephone|1
-  * 00000045|01/01/1900|01/01/2078|Non-qualifying Relocation Expenses|0
-  * 00000054|01/01/1900|01/01/2078|Vouchers and Credit Cards|1
-  */
 object IabdType extends Enumeration {
 
   type IabdType = Value
