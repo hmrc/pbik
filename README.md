@@ -12,14 +12,15 @@ a [JRE] to run.
 
 API
 ------------
+
 | *Path*                                           | *Method* |
 |--------------------------------------------------|----------|
-| `/epaye/:year/getbenefittypes`                   | GET      |
-| `/epaye/:empRef/:year`                           | GET      |
-| `/epaye/:empRef/:year/:ibdtype/exclusion`        | GET      |
-| `/epaye/:empRef/:year/updatebenefittypes`        | POST     |
-| `/epaye/:empRef/:year/:ibdtype/exclusion/update` | POST     |
-| `/epaye/:empRef/:year/:ibdtype/exclusion/remove` | POST     |
+| `/epaye/:year/getbenefittypes`                   | **GET**  |
+| `/epaye/:empRef/:year`                           | **GET**  |
+| `/epaye/:empRef/:year/:ibdtype/exclusion`        | **GET**  |
+| `/epaye/:empRef/:year/updatebenefittypes`        | **POST** |
+| `/epaye/:empRef/:year/:ibdtype/exclusion/update` | **POST** |
+| `/epaye/:empRef/:year/:ibdtype/exclusion/remove` | **POST** |
 
 Configuration
 ---
