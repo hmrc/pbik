@@ -34,8 +34,8 @@ class PbikConfig @Inject() (conf: Configuration) {
   val serviceOriginatorIdKey: String = conf.get[String]("microservice.services.nps.originatoridkey")
   val serviceOriginatorId: String    = conf.get[String]("microservice.services.nps.originatoridvalue")
 
-  val serviceOriginatorIdKeyV1: String = conf.get[String]("microservice.services.nps.originatoridkey_v1")
-  val serviceOriginatorIdV1: String    = conf.get[String]("microservice.services.nps.originatoridvalue_v1")
+  val serviceOriginatorIdKeyV1: String = conf.get[String]("microservice.services.nps.hip.originatoridkey")
+  val serviceOriginatorIdV1: String    = conf.get[String]("microservice.services.nps.hip.originatoridvalue")
 
   val getBenefitTypesPath: String = "getbenefittypes"
   val exclusionPath: String       = "exclusion"
@@ -44,7 +44,7 @@ class PbikConfig @Inject() (conf: Configuration) {
 
   val baseURL: String = s"${getServiceUrl("nps")}/nps-hod-service/services/nps/employer/payroll-bik"
 
-  private val baseNPSJsonURL: String = s"${getServiceUrl("nps")}/nps-json-service/nps/v1/api/employer"
+  private val baseNPSJsonURL: String = s"${getServiceUrl("nps.hip")}/nps-json-service/nps/v1/api/employer"
 
   def getRegisteredBenefitsPath(credentials: PbikCredentials, year: Int): String =
     s"$baseNPSJsonURL/${credentials.employerNumber}/payrolled-benefits-in-kind/$year/${credentials.payeSchemeType}/${credentials.payeSequenceNumber}"
