@@ -44,7 +44,7 @@ class PbikConfig @Inject() (conf: Configuration) {
 
   val baseURL: String = s"${getServiceUrl("nps")}/nps-hod-service/services/nps/employer/payroll-bik"
 
-  private val baseNPSJsonURL: String = s"${getServiceUrl("nps.hip")}/nps-json-service/nps/v1/api/employer"
+  private val baseNPSJsonURL: String = s"${getServiceUrl("nps.hip")}/nps/nps-json-service/nps/v1/api/employer"
 
   def getRegisteredBenefitsPath(credentials: PbikCredentials, year: Int): String =
     s"$baseNPSJsonURL/${credentials.employerNumber}/payrolled-benefits-in-kind/$year/${credentials.payeSchemeType}/${credentials.payeSequenceNumber}"
