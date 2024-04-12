@@ -119,10 +119,11 @@ class HmrcTierConnectorWrapped @Inject() (
     hc: HeaderCarrier,
     request: Request[_]
   ): Future[HttpResponse] = {
-    val requestBody   = Json.toJson(bikToUpdateRequest)
-    val correlationId = getCorrelationId(hc)
-    val npsHeaders    = controllerUtils.getNPSMutatorSessionHeader
-    val allHeaders    = buildHeadersV1(correlationId) ++ npsHeaders.toSeq
+    val requestBody     = Json.toJson(bikToUpdateRequest)
+    val correlationId   = getCorrelationId(hc)
+    val npsHeaders      = controllerUtils.getNPSMutatorSessionHeader
+    val contentTypeJson = "Content-Type" -> "application/json"
+    val allHeaders      = buildHeadersV1(correlationId) ++ npsHeaders.toSeq :+ contentTypeJson
     http.PUT[JsValue, HttpResponse](url, requestBody, allHeaders).recover { case ex =>
       logger.error(
         s"[HmrcTierConnectorWrapped][updateBenefitTypes] an exception occurred ${ex.getMessage}, when calling $url",
