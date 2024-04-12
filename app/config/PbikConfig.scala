@@ -19,6 +19,7 @@ package config
 import models.PbikCredentials
 import play.api.Configuration
 
+import java.util.Base64
 import javax.inject.Inject
 
 class PbikConfig @Inject() (conf: Configuration) {
@@ -44,12 +45,17 @@ class PbikConfig @Inject() (conf: Configuration) {
 
   val baseURL: String = s"${getServiceUrl("nps")}/nps-hod-service/services/nps/employer/payroll-bik"
 
-  private val baseNPSJsonURL: String = s"${getServiceUrl("nps.hip")}/nps-json-service/nps/v1/api/employer"
+  private val baseNPSJsonURL: String = s"${getServiceUrl("nps.hip")}/nps/nps-json-service/nps/v1/api/employer"
 
   def getRegisteredBenefitsPath(credentials: PbikCredentials, year: Int): String =
     s"$baseNPSJsonURL/${credentials.employerNumber}/payrolled-benefits-in-kind/$year/${credentials.payeSchemeType}/${credentials.payeSequenceNumber}"
 
   def putRegisteredBenefitsPath(credentials: PbikCredentials, year: Int): String =
     s"$baseNPSJsonURL/${credentials.employerNumber}/payrolled-benefits-in-kind/$year/${credentials.payeSchemeType}/${credentials.payeSequenceNumber}"
+
+  private val clientIdV1: String = conf.get[String]("microservice.services.nps.hip.clientId")
+  private val secretV1: String   = conf.get[String]("microservice.services.nps.hip.secret")
+
+  def authorizationToken: String = Base64.getEncoder.encodeToString(s"$clientIdV1:$secretV1".getBytes("UTF-8"))
 
 }

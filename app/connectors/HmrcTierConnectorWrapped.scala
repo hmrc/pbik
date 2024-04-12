@@ -40,8 +40,9 @@ class HmrcTierConnectorWrapped @Inject() (
   val executionContext: ExecutionContext
 ) extends Logging {
 
-  private val CORRELATION_HEADER: String = "CorrelationId"
-  private val requestIdPattern: Regex    = """.*([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}).*""".r
+  private val CORRELATION_HEADER: String   = "CorrelationId"
+  private val AUTHORIZATION_HEADER: String = "Authorization"
+  private val requestIdPattern: Regex      = """.*([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}).*""".r
 
   private def buildHeaders(correlationId: String): Seq[(String, String)] =
     Seq(
@@ -52,7 +53,8 @@ class HmrcTierConnectorWrapped @Inject() (
   private def buildHeadersV1(correlationId: String): Seq[(String, String)] =
     Seq(
       pbikConfig.serviceOriginatorIdKeyV1 -> pbikConfig.serviceOriginatorIdV1,
-      CORRELATION_HEADER                  -> correlationId
+      CORRELATION_HEADER                  -> correlationId,
+      AUTHORIZATION_HEADER                -> s"Basic ${pbikConfig.authorizationToken}"
     )
 
   def generateNewUUID: String = randomUUID.toString
