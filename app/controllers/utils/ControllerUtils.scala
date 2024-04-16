@@ -21,7 +21,7 @@ import connectors.HmrcTierConnectorWrapped
 import models.v1.NPSErrors
 import models.{HeaderTags, PbikCredentials, PbikError}
 import play.api.Logging
-import play.api.http.Status.OK
+import play.api.http.Status.{ACCEPTED, OK}
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Request, Result}
@@ -63,14 +63,14 @@ class ControllerUtils @Inject() (pbikConfig: PbikConfig)(implicit val executionC
 
   def mapResponseToResult(wsResponse: Future[HttpResponse]): Future[Result] = wsResponse.map { response =>
     response.status match {
-      case OK =>
+      case OK | ACCEPTED =>
         val headers: Map[String, String] = Map(
           HeaderTags.ETAG   -> response.header(HeaderTags.ETAG).getOrElse("0"),
           HeaderTags.X_TXID -> response.header(HeaderTags.X_TXID).getOrElse("1")
         )
 
         Ok(response.body).withHeaders(headers.toSeq: _*)
-      case _  =>
+      case _             =>
         val pbikError: PbikError = responseToNPSError(response)
         new Status(response.status)(Json.toJson(pbikError))
     }
