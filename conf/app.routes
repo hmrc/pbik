@@ -9,4 +9,5 @@ GET /epaye/:empRef/:year/:ibdtype/exclusion                 @controllers.Gateway
 POST /epaye/:empRef/:year/:ibdtype/exclusion/update         @controllers.GatewayNPSController.updateExclusionsForEmployer(empRef:String,year:Int,ibdtype:Int)
 POST /epaye/:empRef/:year/:ibdtype/exclusion/remove         @controllers.GatewayNPSController.removeExclusionForEmployer(empRef:String,year:Int,ibdtype:Int)
 POST /epaye/:empRef/:year/updatebenefittypes                @controllers.GatewayNPSController.updateBenefitTypes(empRef:String,year:Int)
-
+POST /epaye/:empRef/:year/updatebenefittypes/agent          @controllers.GatewayNPSController.updateBenefitTypes(empRef:String,year:Int)
+POST /epaye/:empRef/:year/updatebenefittypes/org            @controllers.GatewayNPSController.updateBenefitTypes(empRef:String,year:Int)
