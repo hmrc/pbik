@@ -23,7 +23,6 @@ import helper.{FakePBIKApplication, TestMinimalAuthAction}
 import models.{HeaderTags, PbikCredentials}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Application
 import play.api.inject._
@@ -38,16 +37,16 @@ import uk.gov.hmrc.time.TaxYear
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ControllersSpec extends PlaySpec with MockitoSugar with FakePBIKApplication with Results {
+class ControllersSpec extends PlaySpec with FakePBIKApplication with Results {
 
   implicit lazy override val app: Application = new GuiceApplicationBuilder()
     .configure(config)
-    .overrides(bind(classOf[HmrcTierConnectorWrapped]).toInstance(mock[HmrcTierConnectorWrapped]))
-    .overrides(bind(classOf[ControllerUtils]).toInstance(mock[ControllerUtils]))
+    .overrides(bind(classOf[HmrcTierConnectorWrapped]).toInstance(mock(classOf[HmrcTierConnectorWrapped])))
+    .overrides(bind(classOf[ControllerUtils]).toInstance(mock(classOf[ControllerUtils])))
     .overrides(bind(classOf[MinimalAuthAction]).to(classOf[TestMinimalAuthAction]))
     .build()
 
-  val mockCredentials: PbikCredentials = mock[PbikCredentials]
+  val mockCredentials: PbikCredentials = mock(classOf[PbikCredentials])
 
   val paye_scheme_type: Int             = 123
   val employer_number: String           = "999"

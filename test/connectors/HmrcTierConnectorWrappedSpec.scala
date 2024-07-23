@@ -22,32 +22,36 @@ import helper.FakePBIKApplication
 import models.v1.{BenefitListUpdateRequest, EmployerOptimisticLockRequest}
 import models.{HeaderTags, PbikCredentials}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{mock, when}
+import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.Status
 import play.api.libs.json.{JsString, JsValue, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, RequestId}
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse, RequestId}
 
 import java.util.regex.Pattern
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication with MockitoSugar with Matchers {
+class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication with Matchers {
 
   val mockCredentials: PbikCredentials = PbikCredentials(1, 2, 3, "aoReference", "payeSchemeOperatorName")
   val uuidPattern: Pattern             = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$".r.pattern
 
   trait Setup {
 
-    val mockHttpClient: HttpClient       = mock[HttpClient]
-    val pbikConfig: PbikConfig           = fakeApplication.injector.instanceOf[PbikConfig]
-    val controllerUtils: ControllerUtils = fakeApplication.injector.instanceOf[ControllerUtils]
-    val uuid                             = "8c5d7809-0eec-4257-b4ad-fe0125cefb2c"
+    val mockHttpClient: HttpClientV2           = mock(classOf[HttpClientV2])
+    val mockRequestBuilderGet: RequestBuilder  = mock(classOf[RequestBuilder])
+    val mockRequestBuilderPost: RequestBuilder = mock(classOf[RequestBuilder])
+    val mockRequestBuilderPut: RequestBuilder  = mock(classOf[RequestBuilder])
+    val pbikConfig: PbikConfig                 = fakeApplication.injector.instanceOf[PbikConfig]
+    val controllerUtils: ControllerUtils       = fakeApplication.injector.instanceOf[ControllerUtils]
+    val uuid                                   = "8c5d7809-0eec-4257-b4ad-fe0125cefb2c"
 
     val connector: HmrcTierConnectorWrapped =
       new HmrcTierConnectorWrapped(mockHttpClient, pbikConfig, controllerUtils)
@@ -56,6 +60,34 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
       new HmrcTierConnectorWrapped(mockHttpClient, pbikConfig, controllerUtils) {
         override def generateNewUUID: String = uuid
       }
+
+    when(mockHttpClient.get(any())(any())).thenReturn(mockRequestBuilderGet)
+    when(mockHttpClient.post(any())(any())).thenReturn(mockRequestBuilderPost)
+    when(mockHttpClient.put(any())(any())).thenReturn(mockRequestBuilderPut)
+
+    when(mockRequestBuilderGet.setHeader(any())).thenReturn(mockRequestBuilderGet)
+    when(mockRequestBuilderPost.setHeader(any())).thenReturn(mockRequestBuilderPost)
+    when(mockRequestBuilderPut.setHeader(any())).thenReturn(mockRequestBuilderPut)
+
+    private def mockExecute(
+      builder: RequestBuilder,
+      expectedResponse: Future[HttpResponse]
+    ): OngoingStubbing[Future[HttpResponse]] =
+      when(builder.execute(any[HttpReads[HttpResponse]], any())).thenReturn(expectedResponse)
+
+    def mockGetEndpoint(expectedResponse: Future[HttpResponse]): OngoingStubbing[Future[HttpResponse]] =
+      mockExecute(mockRequestBuilderGet, expectedResponse)
+
+    def mockPostEndpoint(expectedResponse: Future[HttpResponse]): OngoingStubbing[RequestBuilder] = {
+      mockExecute(mockRequestBuilderPost, expectedResponse)
+      when(mockRequestBuilderPost.withBody(any[JsValue])(any(), any(), any())).thenReturn(mockRequestBuilderPost)
+    }
+
+    def mockPutEndpoint(expectedResponse: Future[HttpResponse]): OngoingStubbing[RequestBuilder] = {
+      mockExecute(mockRequestBuilderPut, expectedResponse)
+      when(mockRequestBuilderPut.withBody(any[JsValue])(any(), any(), any())).thenReturn(mockRequestBuilderPut)
+    }
+
   }
 
   "MinimalAuthAction" when {
@@ -99,14 +131,7 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
           val url: String                               = "http://test.com"
           val headersResponse: Map[String, Seq[String]] = Map("key1" -> Seq("value1"))
           val expectedResponse: HttpResponse            = HttpResponse(Status.OK, json = Json.toJson("Success"), headersResponse)
-          when(
-            mockHttpClient.GET[HttpResponse](any[String], any[Seq[(String, String)]], any[Seq[(String, String)]])(
-              any(),
-              any(),
-              any()
-            )
-          )
-            .thenReturn(Future.successful(expectedResponse))
+          mockGetEndpoint(Future.successful(expectedResponse))
 
           val result: HttpResponse = await(connector.retrieveDataGet(url))
 
@@ -120,14 +145,7 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
         "return an HttpResponse with the exception message" in new Setup {
           val url: String              = "http://test.com"
           val exceptionMessage: String = "An error occurred"
-          when(
-            mockHttpClient.GET[HttpResponse](any[String], any[Seq[(String, String)]], any[Seq[(String, String)]])(
-              any(),
-              any(),
-              any()
-            )
-          )
-            .thenReturn(Future.failed(new Exception(exceptionMessage)))
+          mockGetEndpoint(Future.failed(new Exception(exceptionMessage)))
 
           val result: HttpResponse = await(connector.retrieveDataGet(url))
 
@@ -148,15 +166,7 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
           val headersResponse: Map[String, Seq[String]] = Map("key1" -> Seq("value1"))
 
           val expectedResponse: HttpResponse = HttpResponse(Status.OK, json = Json.toJson("Success"), headersResponse)
-          when(
-            mockHttpClient.POST[JsValue, HttpResponse](any[String], any[JsValue], any[Seq[(String, String)]])(
-              any(),
-              any(),
-              any(),
-              any()
-            )
-          )
-            .thenReturn(Future.successful(expectedResponse))
+          mockPostEndpoint(Future.successful(expectedResponse))
 
           val result: HttpResponse = await(connector.retrieveDataPost(url, requestBody))
 
@@ -173,15 +183,7 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
           val url: String              = "http://test.com"
           val requestBody: JsValue     = Json.toJson("Request Body")
           val exceptionMessage: String = "An error occurred"
-          when(
-            mockHttpClient.POST[JsValue, HttpResponse](any[String], any[JsValue], any[Seq[(String, String)]])(
-              any(),
-              any(),
-              any(),
-              any()
-            )
-          )
-            .thenReturn(Future.failed(new Exception(exceptionMessage)))
+          mockPostEndpoint(Future.failed(new Exception(exceptionMessage)))
 
           val result: HttpResponse = await(connector.retrieveDataPost(url, requestBody))
 
@@ -199,14 +201,7 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
           val headersResponse: Map[String, Seq[String]] = Map("key1" -> Seq("value1"))
           val year: Int                                 = 2022
           val expectedResponse: HttpResponse            = HttpResponse(Status.OK, json = Json.toJson("Success"), headersResponse)
-          when(
-            mockHttpClient.GET[HttpResponse](any[String], any[Seq[(String, String)]], any[Seq[(String, String)]])(
-              any(),
-              any(),
-              any()
-            )
-          )
-            .thenReturn(Future.successful(expectedResponse))
+          mockGetEndpoint(Future.successful(expectedResponse))
 
           val result: HttpResponse = await(connector.getRegisteredBenefits(mockCredentials, year))
 
@@ -220,14 +215,8 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
         "return an HttpResponse with the exception message" in new Setup {
           val year: Int                = 2022
           val exceptionMessage: String = "An error occurred"
-          when(
-            mockHttpClient.GET[HttpResponse](any[String], any[Seq[(String, String)]], any[Seq[(String, String)]])(
-              any(),
-              any(),
-              any()
-            )
-          )
-            .thenReturn(Future.failed(new Exception(exceptionMessage)))
+
+          mockGetEndpoint(Future.failed(new Exception(exceptionMessage)))
 
           val result: HttpResponse = await(connector.getRegisteredBenefits(mockCredentials, year))
 
@@ -251,15 +240,8 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
           val url: String                               = "http://test.com"
           val headersResponse: Map[String, Seq[String]] = Map("key1" -> Seq("value1"))
           val expectedResponse: HttpResponse            = HttpResponse(Status.OK, json = Json.toJson("Success"), headersResponse)
-          when(
-            mockHttpClient.PUT[JsValue, HttpResponse](any[String], any[JsValue], any[Seq[(String, String)]])(
-              any(),
-              any(),
-              any(),
-              any()
-            )
-          )
-            .thenReturn(Future.successful(expectedResponse))
+
+          mockPutEndpoint(Future.successful(expectedResponse))
 
           val result: HttpResponse = await(connector.updateBenefitTypes(url, mockBikToUpdateRequest))
 
@@ -273,15 +255,8 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
         "return an HttpResponse with the exception message" in new Setup {
           val url: String              = "http://test.com"
           val exceptionMessage: String = "An error occurred"
-          when(
-            mockHttpClient.PUT[JsValue, HttpResponse](any[String], any[JsValue], any[Seq[(String, String)]])(
-              any(),
-              any(),
-              any(),
-              any()
-            )
-          )
-            .thenReturn(Future.failed(new Exception(exceptionMessage)))
+
+          mockPutEndpoint(Future.failed(new Exception(exceptionMessage)))
 
           val result: HttpResponse = await(connector.updateBenefitTypes(url, mockBikToUpdateRequest))
 

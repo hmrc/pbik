@@ -18,8 +18,7 @@ package controllers.actions
 
 import helper.FakePBIKApplication
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito.{mock, when}
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc._
 import play.api.test.FakeRequest
@@ -30,7 +29,7 @@ import uk.gov.hmrc.auth.core.retrieve.Credentials
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class MinimalAuthActionSpec extends PlaySpec with MockitoSugar with FakePBIKApplication with Results {
+class MinimalAuthActionSpec extends PlaySpec with FakePBIKApplication with Results {
 
   private class Harness(authAction: MinimalAuthAction) extends BaseController {
     def onPageLoad(): Action[AnyContent] = authAction(_ => Ok)
@@ -43,7 +42,7 @@ class MinimalAuthActionSpec extends PlaySpec with MockitoSugar with FakePBIKAppl
 
     "the user is logged in" must {
       "return the request and has pid" in {
-        val mockAuthConnector: AuthConnector = mock[AuthConnector]
+        val mockAuthConnector: AuthConnector = mock(classOf[AuthConnector])
         when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(any(), any()))
           .thenReturn(Future.successful(Option(Credentials("providerId", "providerType"))))
 
@@ -60,7 +59,7 @@ class MinimalAuthActionSpec extends PlaySpec with MockitoSugar with FakePBIKAppl
 
     "the user is logged in" must {
       "return the request but has not pid" in {
-        val mockAuthConnector: AuthConnector = mock[AuthConnector]
+        val mockAuthConnector: AuthConnector = mock(classOf[AuthConnector])
         when(mockAuthConnector.authorise[Option[String]](any(), any())(any(), any()))
           .thenReturn(Future.successful(None))
 

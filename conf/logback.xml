@@ -23,8 +23,6 @@
 
     <logger name="com.google.inject" level="INFO"/>
 
-    <logger name="org.asynchttpclient.netty" level="INFO"/>
-
     <logger name="play.shaded.ahc.org.asynchttpclient.netty" level="INFO"/>
 
     <logger name="play.shaded.ahc.io.netty" level="INFO"/>
