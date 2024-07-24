@@ -25,7 +25,8 @@ import play.api.http.Status
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Request
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import java.util.UUID.randomUUID
 import javax.inject.Inject
@@ -33,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex
 
 class HmrcTierConnectorWrapped @Inject() (
-  val http: HttpClient,
+  val http: HttpClientV2,
   pbikConfig: PbikConfig,
   val controllerUtils: ControllerUtils
 )(implicit
@@ -73,13 +74,17 @@ class HmrcTierConnectorWrapped @Inject() (
 
   def retrieveDataGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     val correlationId = getCorrelationId(hc)
-    http.GET[HttpResponse](url, headers = buildHeaders(correlationId)).recover { case ex =>
-      logger.error(
-        s"[HmrcTierConnectorWrapped][retrieveDataGet] an exception occurred ${ex.getMessage}, when calling $url",
-        ex
-      )
-      HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
-    }
+    http
+      .get(url"$url")
+      .setHeader(buildHeaders(correlationId): _*)
+      .execute[HttpResponse]
+      .recover { case ex =>
+        logger.error(
+          s"[HmrcTierConnectorWrapped][retrieveDataGet] an exception occurred ${ex.getMessage}, when calling $url",
+          ex
+        )
+        HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
+      }
   }
 
   def retrieveDataPost(url: String, requestBody: JsValue)(implicit
@@ -89,13 +94,18 @@ class HmrcTierConnectorWrapped @Inject() (
     val correlationId = getCorrelationId(hc)
     val npsHeaders    = controllerUtils.getNPSMutatorSessionHeader
     val allHeaders    = buildHeaders(correlationId) ++ npsHeaders.toSeq
-    http.POST[JsValue, HttpResponse](url, requestBody, allHeaders).recover { case ex =>
-      logger.error(
-        s"[HmrcTierConnectorWrapped][retrieveDataPost] an exception occurred ${ex.getMessage}, when calling $url",
-        ex
-      )
-      HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
-    }
+    http
+      .post(url"$url")
+      .setHeader(allHeaders: _*)
+      .withBody(requestBody)
+      .execute[HttpResponse]
+      .recover { case ex =>
+        logger.error(
+          s"[HmrcTierConnectorWrapped][retrieveDataPost] an exception occurred ${ex.getMessage}, when calling $url",
+          ex
+        )
+        HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
+      }
   }
 
   // new v1 api
@@ -103,16 +113,19 @@ class HmrcTierConnectorWrapped @Inject() (
   def getRegisteredBenefits(credentials: PbikCredentials, year: Int)(implicit
     hc: HeaderCarrier
   ): Future[HttpResponse] = {
-    val url = pbikConfig.getRegisteredBenefitsPath(credentials, year)
-
+    val url           = pbikConfig.getRegisteredBenefitsPath(credentials, year)
     val correlationId = getCorrelationId(hc)
-    http.GET[HttpResponse](url, headers = buildHeadersV1(correlationId)).recover { case ex =>
-      logger.error(
-        s"[HmrcTierConnectorWrapped][getRegisteredBenefits] an exception occurred ${ex.getMessage}, when calling $url",
-        ex
-      )
-      HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
-    }
+    http
+      .get(url"$url")
+      .setHeader(buildHeadersV1(correlationId): _*)
+      .execute[HttpResponse]
+      .recover { case ex =>
+        logger.error(
+          s"[HmrcTierConnectorWrapped][getRegisteredBenefits] an exception occurred ${ex.getMessage}, when calling $url",
+          ex
+        )
+        HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
+      }
   }
 
   def updateBenefitTypes(url: String, bikToUpdateRequest: BenefitListUpdateRequest)(implicit
@@ -124,12 +137,17 @@ class HmrcTierConnectorWrapped @Inject() (
     val npsHeaders      = controllerUtils.getNPSMutatorSessionHeader
     val contentTypeJson = "Content-Type" -> "application/json"
     val allHeaders      = buildHeadersV1(correlationId) ++ npsHeaders.toSeq :+ contentTypeJson
-    http.PUT[JsValue, HttpResponse](url, requestBody, allHeaders).recover { case ex =>
-      logger.error(
-        s"[HmrcTierConnectorWrapped][updateBenefitTypes] an exception occurred ${ex.getMessage}, when calling $url",
-        ex
-      )
-      HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
-    }
+    http
+      .put(url"$url")
+      .setHeader(allHeaders: _*)
+      .withBody(requestBody)
+      .execute[HttpResponse]
+      .recover { case ex =>
+        logger.error(
+          s"[HmrcTierConnectorWrapped][updateBenefitTypes] an exception occurred ${ex.getMessage}, when calling $url",
+          ex
+        )
+        HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
+      }
   }
 }

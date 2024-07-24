@@ -23,8 +23,7 @@ import helper.{FakePBIKApplication, StubbedControllerUtils, TestMinimalAuthActio
 import models.v1.BenefitListUpdateRequest
 import models.{Bik, PbikCredentials}
 import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito.when
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito._
 import org.scalatestplus.play.PlaySpec
 import play.api.Application
 import play.api.http.Status
@@ -37,22 +36,20 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.Future
 
-class GatewayNPSControllerSpec extends PlaySpec with MockitoSugar with FakePBIKApplication {
+class GatewayNPSControllerSpec extends PlaySpec with FakePBIKApplication {
 
   implicit lazy override val app: Application = new GuiceApplicationBuilder()
     .configure(config)
-    .overrides(bind(classOf[HmrcTierConnectorWrapped]).toInstance(mock[HmrcTierConnectorWrapped]))
+    .overrides(bind(classOf[HmrcTierConnectorWrapped]).toInstance(mock(classOf[HmrcTierConnectorWrapped])))
     .overrides(bind(classOf[ControllerUtils]).to(classOf[StubbedControllerUtils]))
     .overrides(bind(classOf[MinimalAuthAction]).to(classOf[TestMinimalAuthAction]))
     .build()
 
   class FakeResponse extends HttpResponse {
-    override val allHeaders: Map[String, Seq[String]] = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
-
-    override def status: Int = Status.OK
-
-    override val json: JsValue = Json.parse(sampleBikJson)
-    override val body: String  = sampleBikJson
+    override val headers: Map[String, Seq[String]] = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
+    override def status: Int                       = Status.OK
+    override val json: JsValue                     = Json.parse(sampleBikJson)
+    override val body: String                      = sampleBikJson
   }
 
   val StubbedGateway: GatewayNPSController = {

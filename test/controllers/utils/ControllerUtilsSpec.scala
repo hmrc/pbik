@@ -21,8 +21,7 @@ import helper.FakePBIKApplication
 import models.v1.{NPSError, NPSErrors}
 import models.{HeaderTags, PbikCredentials, PbikError}
 import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito.when
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito.{mock, when}
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{AnyContent, Request}
@@ -33,7 +32,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplication {
+class ControllerUtilsSpec extends PlaySpec with FakePBIKApplication {
 
   val testRequestBody: JsValue                   = Json.toJson(List.empty[String])
   implicit val request: Request[AnyContent]      = FakeRequest().withJsonBody(testRequestBody)
@@ -54,7 +53,7 @@ class ControllerUtilsSpec extends PlaySpec with MockitoSugar with FakePBIKApplic
 
   def mockControllerUtils: ControllerUtils = app.injector.instanceOf[ControllerUtils]
 
-  val mockTierConnector: HmrcTierConnectorWrapped = mock[HmrcTierConnectorWrapped]
+  val mockTierConnector: HmrcTierConnectorWrapped = mock(classOf[HmrcTierConnectorWrapped])
   when(mockTierConnector.retrieveDataGet(anyString)(any[HeaderCarrier]))
     .thenReturn(Future.successful(HttpResponse(OK, Json.toJson(mockCredentials).toString())))
 
