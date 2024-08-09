@@ -39,7 +39,7 @@ class MinimalAuthActionImpl @Inject() (val authConnector: AuthConnector, val par
     authorised()
       .retrieve(credentials)(_ => Future.successful(Right(request)))
       .recover { case t: Throwable =>
-        logger.debug("Debug info - " + t.getMessage)
+        logger.debug("[MinimalAuthActionImpl][refine] Debug info - " + t.getMessage)
         Left(Unauthorized)
       }
   }
