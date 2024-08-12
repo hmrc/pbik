@@ -267,6 +267,47 @@ class HmrcTierConnectorWrappedSpec extends AnyWordSpec with FakePBIKApplication 
       }
     }
 
+    ".getBenefitTypes" when {
+
+      "the HTTP GET request is successful" should {
+        "return the HttpResponse" in new Setup {
+          val headersResponse: Map[String, Seq[String]] = Map("key1" -> Seq("value1"))
+          val year: Int                                 = 2022
+          val expectedResponse: HttpResponse            = HttpResponse(
+            Status.OK,
+            json = Json.toJson("{  \"pbikTypes\": [    \"Assets\",    \"Vouchers and Credit Cards\"]}"),
+            headersResponse
+          )
+          mockGetEndpoint(Future.successful(expectedResponse))
+
+          val result: HttpResponse = await(connector.getBenefitTypes(year))
+
+          result.status  shouldBe Status.OK
+          result.body    shouldBe expectedResponse.json.toString()
+          result.headers shouldBe headersResponse
+        }
+      }
+
+      "the HTTP GET request fails" should {
+        "return an HttpResponse with the exception message" in new Setup {
+          val headersResponse: Map[String, Seq[String]] = Map("key1" -> Seq("value1"))
+          val year: Int                                 = 2022
+          val expectedResponse: HttpResponse            = HttpResponse(
+            Status.INTERNAL_SERVER_ERROR,
+            json = JsString("<htmL>Internal Server Error</html>"),
+            headersResponse
+          )
+          mockGetEndpoint(Future.successful(expectedResponse))
+
+          val result: HttpResponse = await(connector.getBenefitTypes(year))
+
+          result.status  shouldBe Status.INTERNAL_SERVER_ERROR
+          result.body    shouldBe expectedResponse.body
+          result.headers shouldBe headersResponse
+        }
+      }
+    }
+
   }
 
 }

@@ -150,4 +150,15 @@ class HmrcTierConnectorWrapped @Inject() (
         HttpResponse(Status.OK, json = Json.toJson(ex.getMessage), Map.empty)
       }
   }
+
+  def getBenefitTypes(year: Int)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    val fullUrl       = pbikConfig.getAllBenefitsPath(year)
+    val correlationId = getCorrelationId(hc)
+
+    http
+      .get(url"$fullUrl")
+      .setHeader(buildHeadersV1(correlationId): _*)
+      .execute[HttpResponse]
+
+  }
 }

@@ -17,24 +17,24 @@
 package controllers
 
 import com.google.inject.Inject
-import config.PbikConfig
 import connectors.HmrcTierConnectorWrapped
 import controllers.actions.MinimalAuthAction
-import controllers.utils.ControllerUtils
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.Singleton
+import scala.concurrent.ExecutionContext
+
+@Singleton
 class StaticNPSController @Inject() (
-  val pbikConfig: PbikConfig,
   val tierConnector: HmrcTierConnectorWrapped,
   authenticate: MinimalAuthAction,
-  controllerUtils: ControllerUtils,
   cc: ControllerComponents
-) extends BackendController(cc) {
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) {
 
   def getBenefitTypes(year: Int): Action[AnyContent] = authenticate.async { implicit request =>
-    val url = s"${pbikConfig.baseURL}/$year/${pbikConfig.getBenefitTypesPath}"
-    controllerUtils.generateResultBasedOnStatus(tierConnector.retrieveDataGet(url)(hc))
+    tierConnector.getBenefitTypes(year)(hc).map(httpResponse => Status(httpResponse.status)(httpResponse.body))
   }
 
 }

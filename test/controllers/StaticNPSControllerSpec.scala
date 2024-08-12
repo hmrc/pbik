@@ -50,7 +50,7 @@ class StaticNPSControllerSpec extends PlaySpec with FakePBIKApplication {
 
   val staticNPSController: StaticNPSController = {
     val snc = app.injector.instanceOf[StaticNPSController]
-    when(snc.tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier]))
+    when(snc.tierConnector.getBenefitTypes(anyInt())(any[HeaderCarrier]))
       .thenReturn(Future.successful(new FakeResponse))
     snc
   }

@@ -1,5 +1,5 @@
 ThisBuild / scalaVersion := "2.13.14"
-ThisBuild / majorVersion := 8
+ThisBuild / majorVersion := 9
 
 lazy val microservice = Project("pbik", file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
