@@ -53,6 +53,8 @@ class PbikConfig @Inject() (conf: Configuration) {
   def putRegisteredBenefitsPath(credentials: PbikCredentials, year: Int): String =
     s"$baseNPSJsonURL/${credentials.employerNumber}/payrolled-benefits-in-kind/$year/${credentials.payeSchemeType}/${credentials.payeSequenceNumber}"
 
+  def getAllBenefitsPath(year: Int): String = s"$baseNPSJsonURL/payrolled-benefits-in-kind/current/$year"
+
   private val clientIdV1: String = conf.get[String]("microservice.services.nps.hip.clientId")
   private val secretV1: String   = conf.get[String]("microservice.services.nps.hip.secret")
 
