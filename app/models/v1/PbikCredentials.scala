@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package models
+package models.v1
 
 import play.api.libs.json.{Json, OFormat}
 
-case class PbikError(errorCode: String)
+case class PbikCredentials(
+  employmentIdentifier: String,
+  payeSchemeOperatorName: String,
+  accountOfficeReference: String
+)
 
-object PbikError {
-  implicit val pbikErrorFormat: OFormat[PbikError] = Json.format[PbikError]
+object PbikCredentials {
+  implicit val format: OFormat[PbikCredentials] = Json.format[PbikCredentials]
 }

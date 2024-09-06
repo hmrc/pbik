@@ -1,13 +1,11 @@
 # microservice specific routes
 
-# Unsecured static data available to all clients
-GET /epaye/:year/getbenefittypes                            @controllers.StaticNPSController.getBenefitTypes(year: Int)
+GET /epaye/:year/getbenefittypes                                                         @controllers.GatewayNPSController.getBenefitTypes(year: Int)
+GET /epaye/:taxOfficeNumber/:taxOfficeReference/:year                                    @controllers.GatewayNPSController.getRegisteredBenefits(taxOfficeNumber: String, taxOfficeReference: String,year:Int)
+GET /epaye/:taxOfficeNumber/:taxOfficeReference/:year/:iabd/exclusion                    @controllers.GatewayNPSController.getExclusionsForEmployer(taxOfficeNumber: String, taxOfficeReference: String,year:Int, iabd: String)
+POST /epaye/:taxOfficeNumber/:taxOfficeReference/:year/exclusion/update                  @controllers.GatewayNPSController.updateExclusionsForEmployer(taxOfficeNumber: String, taxOfficeReference: String,year:Int)
+DELETE /epaye/:taxOfficeNumber/:taxOfficeReference/:year/exclusion/remove                @controllers.GatewayNPSController.removeExclusionForEmployer(taxOfficeNumber: String, taxOfficeReference: String,year:Int)
 
-# Secured Controller calls
-GET /epaye/:empRef/:year                                    @controllers.GatewayNPSController.getRegisteredBenefits(empRef:String,year:Int)
-GET /epaye/:empRef/:year/:ibdtype/exclusion                 @controllers.GatewayNPSController.getExclusionsForEmployer(empRef:String,year:Int,ibdtype:Int)
-POST /epaye/:empRef/:year/:ibdtype/exclusion/update         @controllers.GatewayNPSController.updateExclusionsForEmployer(empRef:String,year:Int,ibdtype:Int)
-POST /epaye/:empRef/:year/:ibdtype/exclusion/remove         @controllers.GatewayNPSController.removeExclusionForEmployer(empRef:String,year:Int,ibdtype:Int)
-POST /epaye/:empRef/:year/updatebenefittypes                @controllers.GatewayNPSController.updateBenefitTypes(empRef:String,year:Int)
-POST /epaye/:empRef/:year/updatebenefittypes/agent          @controllers.GatewayNPSController.updateBenefitTypes(empRef:String,year:Int)
-POST /epaye/:empRef/:year/updatebenefittypes/org            @controllers.GatewayNPSController.updateBenefitTypes(empRef:String,year:Int)
+# Split just to see how many orgs and agents journey through the service
+POST /epaye/:taxOfficeNumber/:taxOfficeReference/:year/updatebenefittypes/agent          @controllers.GatewayNPSController.updateBenefitTypes(taxOfficeNumber: String, taxOfficeReference: String,year:Int)
+POST /epaye/:taxOfficeNumber/:taxOfficeReference/:year/updatebenefittypes/org            @controllers.GatewayNPSController.updateBenefitTypes(taxOfficeNumber: String, taxOfficeReference: String,year:Int)

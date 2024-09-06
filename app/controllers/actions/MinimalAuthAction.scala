@@ -17,33 +17,7 @@
 package controllers.actions
 
 import com.google.inject.ImplementedBy
-import play.api.Logging
-import play.api.mvc.Results._
 import play.api.mvc._
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.credentials
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.http.HeaderCarrierConverter
-
-import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
-
-class MinimalAuthActionImpl @Inject() (val authConnector: AuthConnector, val parser: BodyParsers.Default)(implicit
-  val executionContext: ExecutionContext
-) extends MinimalAuthAction
-    with AuthorisedFunctions
-    with Logging {
-  override protected def refine[A](request: Request[A]): Future[Either[Result, Request[A]]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
-
-    authorised()
-      .retrieve(credentials)(_ => Future.successful(Right(request)))
-      .recover { case t: Throwable =>
-        logger.debug("[MinimalAuthActionImpl][refine] Debug info - " + t.getMessage)
-        Left(Unauthorized)
-      }
-  }
-}
 
 @ImplementedBy(classOf[MinimalAuthActionImpl])
 trait MinimalAuthAction extends ActionBuilder[Request, AnyContent] with ActionRefiner[Request, Request]

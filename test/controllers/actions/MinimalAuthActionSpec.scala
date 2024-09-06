@@ -16,7 +16,7 @@
 
 package controllers.actions
 
-import helper.FakePBIKApplication
+import helper.{FakeFailingAuthConnector, FakePBIKApplication}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{mock, when}
 import org.scalatestplus.play.PlaySpec
@@ -35,23 +35,31 @@ class MinimalAuthActionSpec extends PlaySpec with FakePBIKApplication with Resul
     def onPageLoad(): Action[AnyContent] = authAction(_ => Ok)
 
     override protected def controllerComponents: ControllerComponents =
-      fakeApplication.injector.instanceOf[ControllerComponents]
+      app.injector.instanceOf[ControllerComponents]
+  }
+
+  private val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/test")
+  private val parser: BodyParsers.Default                      = app.injector.instanceOf[BodyParsers.Default]
+
+  private def handleAuthError(exc: AuthorisationException): Future[Result] = {
+    val authAction = new MinimalAuthActionImpl(new FakeFailingAuthConnector(exc), parser)
+    new Harness(authAction).onPageLoad()(fakeRequest)
+  }
+
+  private def handleAuth(response: Future[Option[Credentials]]): Future[Result] = {
+    val mockAuthConnector: AuthConnector = mock(classOf[AuthConnector])
+    when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(any(), any())).thenReturn(response)
+
+    val minimalAuthAction = new MinimalAuthActionImpl(mockAuthConnector, parser)
+
+    new Harness(minimalAuthAction).onPageLoad()(fakeRequest)
   }
 
   "MinimalAuthAction" when {
 
     "the user is logged in" must {
       "return the request and has pid" in {
-        val mockAuthConnector: AuthConnector = mock(classOf[AuthConnector])
-        when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(any(), any()))
-          .thenReturn(Future.successful(Option(Credentials("providerId", "providerType"))))
-
-        val minimalAuthAction = new MinimalAuthActionImpl(
-          authConnector = mockAuthConnector,
-          parser = app.injector.instanceOf[BodyParsers.Default]
-        )
-        val controller        = new Harness(minimalAuthAction)
-        val result            = controller.onPageLoad()(FakeRequest("", ""))
+        val result = handleAuth(Future.successful(Option(Credentials("providerId", "providerType"))))
 
         status(result) mustBe OK
       }
@@ -59,16 +67,7 @@ class MinimalAuthActionSpec extends PlaySpec with FakePBIKApplication with Resul
 
     "the user is logged in" must {
       "return the request but has not pid" in {
-        val mockAuthConnector: AuthConnector = mock(classOf[AuthConnector])
-        when(mockAuthConnector.authorise[Option[String]](any(), any())(any(), any()))
-          .thenReturn(Future.successful(None))
-
-        val minimalAuthAction = new MinimalAuthActionImpl(
-          authConnector = mockAuthConnector,
-          parser = app.injector.instanceOf[BodyParsers.Default]
-        )
-        val controller        = new Harness(minimalAuthAction)
-        val result            = controller.onPageLoad()(FakeRequest("", ""))
+        val result = handleAuth(Future.successful(None))
 
         status(result) mustBe OK
       }
@@ -106,17 +105,6 @@ class MinimalAuthActionSpec extends PlaySpec with FakePBIKApplication with Resul
       }
     }
 
-  }
-
-  def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
-
-  private def handleAuthError(exc: AuthorisationException): Future[Result] = {
-    val authAction = new MinimalAuthActionImpl(
-      new FakeFailingAuthConnector(exc),
-      fakeApplication.injector.instanceOf[BodyParsers.Default]
-    )
-    val controller = new Harness(authAction)
-    controller.onPageLoad()(fakeRequest)
   }
 
 }

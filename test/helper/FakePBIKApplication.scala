@@ -16,44 +16,26 @@
 
 package helper
 
-import controllers.actions.MinimalAuthAction
-import models.Bik
-import models.v1.IabdType
+import models.v1.PbikCredentials
 import org.scalatest.TestSuite
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
-import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 
 import java.util.UUID
 
-trait FakePBIKApplication extends GuiceOneAppPerSuite {
-
-  this: TestSuite =>
+trait FakePBIKApplication extends GuiceOneAppPerSuite { this: TestSuite =>
 
   val config: Map[String, Any] = Map(
-    "application.secret"                          -> "Its secret",
-    "csrf.sign.tokens"                            -> false,
-    "microservice.services.contact-frontend.host" -> "localhost",
-    "microservice.services.contact-frontend.port" -> "9250",
-    "sessionId"                                   -> "a-session-id"
+    "metrics.jvm"      -> false,
+    "metrics.enabled"  -> false,
+    "auditing.enabled" -> false
   )
 
-  private val QUERY_STATUS: Int = 10
-
-  val biks: Seq[Bik] = Seq(
-    Bik(IabdType.MedicalInsurance.id.toString, QUERY_STATUS),
-    Bik(IabdType.CarBenefit.id.toString, QUERY_STATUS),
-    Bik(IabdType.OtherItems.id.toString, QUERY_STATUS)
-  )
-
-  val sampleBikJson: String = Json.toJson(biks).toString()
-
-  def mockrequest: FakeRequest[AnyContentAsEmpty.type] =
+  def mockRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest().withSession(
       SessionKeys.sessionId       -> s"session-${UUID.randomUUID}",
       SessionKeys.authToken       -> "RANDOMTOKEN",
@@ -62,9 +44,12 @@ trait FakePBIKApplication extends GuiceOneAppPerSuite {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  override lazy val fakeApplication: Application = GuiceApplicationBuilder()
+  override lazy val app: Application = GuiceApplicationBuilder()
     .configure(config)
-    .overrides(bind(classOf[MinimalAuthAction]).to(classOf[TestMinimalAuthAction]))
     .build()
+
+  val mockCredentials: PbikCredentials = PbikCredentials("fake_emp_id", "fake_scheme_name", "fake_office_ref")
+
+  val allPlayFrameworkStatusCodes: Iterable[Int] = (200 to 599).sorted
 
 }

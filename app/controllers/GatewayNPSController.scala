@@ -17,85 +17,100 @@
 package controllers
 
 import com.google.inject.Inject
-import config.PbikConfig
-import connectors.HmrcTierConnectorWrapped
+import connectors.NpsConnector
 import controllers.actions.MinimalAuthAction
-import controllers.utils.ControllerUtils
-import models.v1.{BenefitInKindRequest, BenefitListUpdateRequest, EmployerOptimisticLockRequest}
-import models.{HeaderTags, PbikCredentials}
+import models.v1
 import play.api.Logging
-import play.api.libs.json.Json
+import play.api.libs.json.JsObject
 import play.api.mvc._
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.Singleton
 import scala.concurrent.ExecutionContext
 
+@Singleton
 class GatewayNPSController @Inject() (
-  val tierConnector: HmrcTierConnectorWrapped,
-  val pbikConfig: PbikConfig,
+  npsConnector: NpsConnector,
   authenticate: MinimalAuthAction,
-  val controllerUtils: ControllerUtils,
   cc: ControllerComponents
-)(implicit val executionContext: ExecutionContext)
+)(implicit val ec: ExecutionContext)
     extends BackendController(cc)
     with Logging {
 
-  def getRegisteredBenefits(empRef: String, year: Int): Action[AnyContent] = authenticate.async { implicit request =>
-    controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef).flatMap { credentials: PbikCredentials =>
-      controllerUtils.mapResponseToResult(tierConnector.getRegisteredBenefits(credentials, year)(hc))
+  /** Maps an HttpResponse to a Play Result Because HttpResponse from play and Result from play have different ways of
+    * representing headers, had to write this custom mapping logic to convert the headers from Map[String, Seq[String]]
+    * to Seq[(String, String)]
+    * @param httpResponse
+    *   - Response from NPS call in NpsConnector
+    * @return
+    *   play.api.mvc.Result
+    */
+  private def mapHttpResponseToResult(httpResponse: HttpResponse): Result = {
+    val status  = httpResponse.status
+    val body    = httpResponse.body
+    val headers = httpResponse.headers
+      .flatMap { case (key, values) => values.map(value => (key, value)) }
+      .toSeq
+      .sortBy(_._1)
+    Status(status)(body).withHeaders(headers: _*)
+  }
+
+  def getBenefitTypes(year: Int): Action[AnyContent] = authenticate.async { implicit request =>
+    npsConnector.getBenefitTypes(year).map(mapHttpResponseToResult)
+  }
+
+  def getRegisteredBenefits(taxOfficeNumber: String, taxOfficeReference: String, year: Int): Action[AnyContent] =
+    authenticate.async { implicit request =>
+      npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference).flatMap { credentials: v1.PbikCredentials =>
+        npsConnector
+          .getRegisteredBenefits(credentials, year)
+          .map(mapHttpResponseToResult)
+      }
+    }
+
+  def getExclusionsForEmployer(
+    taxOfficeNumber: String,
+    taxOfficeReference: String,
+    year: Int,
+    iabd: String
+  ): Action[AnyContent] = authenticate.async { implicit request =>
+    npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference).flatMap { credentials: v1.PbikCredentials =>
+      npsConnector
+        .getAllExcludedPeopleForABenefit(credentials, year, iabd)
+        .map(mapHttpResponseToResult)
     }
   }
 
-  def getExclusionsForEmployer(empRef: String, year: Int, ibdtype: Int): Action[AnyContent] = authenticate.async {
-    implicit request =>
-      controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
-        val url =
-          s"${pbikConfig.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}" +
-            s"/${credentials.payeSequenceNumber}/$ibdtype/${pbikConfig.exclusionPath}"
-        controllerUtils.generateResultBasedOnStatus(tierConnector.retrieveDataGet(url)(hc))
+  def updateBenefitTypes(taxOfficeNumber: String, taxOfficeReference: String, year: Int): Action[AnyContent] =
+    authenticate.async { implicit request =>
+      val biksToUpdate = request.body.asJson.getOrElse(JsObject.empty)
+      npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference).flatMap { credentials: v1.PbikCredentials =>
+        npsConnector
+          .updateBenefitTypes(credentials, year, biksToUpdate)
+          .map(mapHttpResponseToResult)
       }
-  }
-
-  def updateBenefitTypes(empRef: String, year: Int): Action[AnyContent] = authenticate.async { implicit request =>
-    val biksToUpdate = request.body.asJson.flatMap(_.validate[List[BenefitInKindRequest]].asOpt).getOrElse(List.empty)
-    controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
-      val url                = pbikConfig.putRegisteredBenefitsPath(credentials, year)
-      val headers            = controllerUtils.getNPSMutatorSessionHeader
-      val lockRequest        = EmployerOptimisticLockRequest(
-        headers.getOrElse(HeaderTags.ETAG, HeaderTags.ETAG_DEFAULT_VALUE).toInt
-      )
-      val bikToUpdateRequest = BenefitListUpdateRequest(biksToUpdate, lockRequest)
-      controllerUtils.mapResponseToResult(
-        tierConnector.updateBenefitTypes(url, bikToUpdateRequest)(hc, request)
-      )
     }
-  }
 
-  def updateExclusionsForEmployer(empRef: String, year: Int, ibdtype: Int): Action[AnyContent] = authenticate.async {
-    implicit request =>
-      controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
-        val url        =
-          s"${pbikConfig.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}" +
-            s"/${credentials.payeSequenceNumber}/$ibdtype/${pbikConfig.addExclusionPath}"
-        val exclusions = request.body.asJson.getOrElse(Json.toJson(List.empty[String]))
-        controllerUtils.generateResultBasedOnStatus(
-          tierConnector.retrieveDataPost(url, exclusions)(hc, request)
-        )
+  def updateExclusionsForEmployer(taxOfficeNumber: String, taxOfficeReference: String, year: Int): Action[AnyContent] =
+    authenticate.async { implicit request =>
+      val exclusions = request.body.asJson.getOrElse(JsObject.empty)
+      npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference).flatMap { credentials: v1.PbikCredentials =>
+        npsConnector
+          .updateExcludedPeopleForABenefit(credentials, year, exclusions)
+          .map(mapHttpResponseToResult)
       }
 
-  }
+    }
 
-  def removeExclusionForEmployer(empRef: String, year: Int, ibdtype: Int): Action[AnyContent] = authenticate.async {
-    implicit request =>
-      controllerUtils.retrieveNPSCredentials(tierConnector, year, empRef) flatMap { credentials: PbikCredentials =>
-        val url        =
-          s"${pbikConfig.baseURL}/$year/${credentials.payeSchemeType}/${credentials.employerNumber}" +
-            s"/${credentials.payeSequenceNumber}/$ibdtype/${pbikConfig.removeExclusionPath}"
-        val exclusions = request.body.asJson.getOrElse(Json.toJson(List.empty[String]))
-        controllerUtils.generateResultBasedOnStatus(
-          tierConnector.retrieveDataPost(url, exclusions)(hc, request)
-        )
+  def removeExclusionForEmployer(taxOfficeNumber: String, taxOfficeReference: String, year: Int): Action[AnyContent] =
+    authenticate.async { implicit request =>
+      val exclusions = request.body.asJson.getOrElse(JsObject.empty)
+      npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference).flatMap { credentials: v1.PbikCredentials =>
+        npsConnector
+          .removeExcludedPeopleForABenefit(credentials, year, exclusions)
+          .map(mapHttpResponseToResult)
       }
-  }
+    }
 
 }

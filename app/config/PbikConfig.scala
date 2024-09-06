@@ -16,13 +16,20 @@
 
 package config
 
-import models.PbikCredentials
+import models.v1.PbikCredentials
 import play.api.Configuration
 
 import java.util.Base64
 import javax.inject.Inject
 
 class PbikConfig @Inject() (conf: Configuration) {
+
+  private val clientIdV1: String = conf.get[String]("microservice.services.nps.hip.clientId")
+  private val secretV1: String   = conf.get[String]("microservice.services.nps.hip.secret")
+  def authorizationToken: String = Base64.getEncoder.encodeToString(s"$clientIdV1:$secretV1".getBytes("UTF-8"))
+
+  val serviceOriginatorIdKeyV1: String = conf.get[String]("microservice.services.nps.hip.originatoridkey")
+  val serviceOriginatorIdV1: String    = conf.get[String]("microservice.services.nps.hip.originatoridvalue")
 
   private def getServiceUrl(serviceName: String): String = {
     val host     = conf.get[String](s"microservice.services.$serviceName.host")
@@ -32,32 +39,26 @@ class PbikConfig @Inject() (conf: Configuration) {
     s"$protocol://$host:$port"
   }
 
-  val serviceOriginatorIdKey: String = conf.get[String]("microservice.services.nps.originatoridkey")
-  val serviceOriginatorId: String    = conf.get[String]("microservice.services.nps.originatoridvalue")
-
-  val serviceOriginatorIdKeyV1: String = conf.get[String]("microservice.services.nps.hip.originatoridkey")
-  val serviceOriginatorIdV1: String    = conf.get[String]("microservice.services.nps.hip.originatoridvalue")
-
-  val getBenefitTypesPath: String = "getbenefittypes"
-  val exclusionPath: String       = "exclusion"
-  val addExclusionPath: String    = "exclusion/update"
-  val removeExclusionPath: String = "exclusion/remove"
-
-  val baseURL: String = s"${getServiceUrl("nps")}/nps-hod-service/services/nps/employer/payroll-bik"
-
-  private val baseNPSJsonURL: String = s"${getServiceUrl("nps.hip")}/nps/nps-json-service/nps/v1/api/employer"
+  private val baseNPSJsonURL: String = s"${getServiceUrl("nps.hip")}/paye/employer"
 
   def getRegisteredBenefitsPath(credentials: PbikCredentials, year: Int): String =
-    s"$baseNPSJsonURL/${credentials.employerNumber}/payrolled-benefits-in-kind/$year/${credentials.payeSchemeType}/${credentials.payeSequenceNumber}"
+    s"$baseNPSJsonURL/${credentials.employmentIdentifier}/payrolled-benefits-in-kind/$year"
 
   def putRegisteredBenefitsPath(credentials: PbikCredentials, year: Int): String =
-    s"$baseNPSJsonURL/${credentials.employerNumber}/payrolled-benefits-in-kind/$year/${credentials.payeSchemeType}/${credentials.payeSequenceNumber}"
+    s"$baseNPSJsonURL/${credentials.employmentIdentifier}/payrolled-benefits-in-kind/$year"
 
   def getAllBenefitsPath(year: Int): String = s"$baseNPSJsonURL/payrolled-benefits-in-kind/current/$year"
 
-  private val clientIdV1: String = conf.get[String]("microservice.services.nps.hip.clientId")
-  private val secretV1: String   = conf.get[String]("microservice.services.nps.hip.secret")
+  def getEmployerDetailsPath(taxDistrictNumber: String, payeNumber: String) =
+    s"$baseNPSJsonURL/paye-scheme/$taxDistrictNumber/$payeNumber/summary"
 
-  def authorizationToken: String = Base64.getEncoder.encodeToString(s"$clientIdV1:$secretV1".getBytes("UTF-8"))
+  def getAllExcludedPeopleForABenefitPath(credentials: PbikCredentials, year: Int, ibdtype: String) =
+    s"$baseNPSJsonURL/${credentials.employmentIdentifier}/payrolled-benefits-in-kind/exclusion-list/$year/$ibdtype"
+
+  def putExcludedPeopleForABenefitPath(credentials: PbikCredentials, year: Int) =
+    s"$baseNPSJsonURL/${credentials.employmentIdentifier}/payrolled-benefits-in-kind/exclusion-list/$year"
+
+  def removeExcludedPeopleForABenefitPath(credentials: PbikCredentials, year: Int) =
+    s"$baseNPSJsonURL/${credentials.employmentIdentifier}/payrolled-benefits-in-kind/exclusion-list/$year"
 
 }
