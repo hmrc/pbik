@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package models.v1
+package helper
 
-import models.v1.IabdType.IabdType
-import models.v1.PbikAction.PbikAction
-import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.auth.core.authorise.Predicate
+import uk.gov.hmrc.auth.core.retrieve.Retrieval
+import uk.gov.hmrc.http.HeaderCarrier
 
-case class BenefitInKindRequest(
-  iabdType: IabdType,
-  payrolledBenefitInKindAction: PbikAction,
-  isAgentSubmission: Boolean
-) {
-  override def equals(obj: Any): Boolean =
-    obj.isInstanceOf[BenefitInKindRequest] && this.iabdType == obj.asInstanceOf[BenefitInKindRequest].iabdType
+import scala.concurrent.{ExecutionContext, Future}
 
-  override def hashCode: Int = iabdType.hashCode
-}
+class FakeFailingAuthConnector(exceptionToReturn: Throwable) extends AuthConnector {
 
-object BenefitInKindRequest {
-  implicit val formats: Format[BenefitInKindRequest] = Json.format[BenefitInKindRequest]
+  override def authorise[A](
+    predicate: Predicate,
+    retrieval: Retrieval[A]
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] =
+    Future.failed(exceptionToReturn)
+
 }

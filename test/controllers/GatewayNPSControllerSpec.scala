@@ -16,108 +16,251 @@
 
 package controllers
 
-import connectors.HmrcTierConnectorWrapped
-import controllers.actions.MinimalAuthAction
-import controllers.utils.ControllerUtils
-import helper.{FakePBIKApplication, StubbedControllerUtils, TestMinimalAuthAction}
-import models.v1.BenefitListUpdateRequest
-import models.{Bik, PbikCredentials}
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
-import org.scalatestplus.play.PlaySpec
-import play.api.Application
-import play.api.http.Status
-import play.api.inject.bind
-import play.api.inject.guice.GuiceApplicationBuilder
+import config.PbikConfig
+import connectors.NpsConnector
+import helper.{FakePBIKApplication, TestMinimalAuthAction}
+import models.v1.PbikCredentials
+import org.mockito.ArgumentMatchers.{any, anyInt, anyString}
+import org.mockito.Mockito.{mock, when}
+import org.scalatest.Inspectors.forAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.Request
-import play.api.test.Helpers._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson, BodyParsers, Result}
+import play.api.test.Helpers.{await, defaultAwaitTimeout, stubControllerComponents}
+import play.api.test.{FakeRequest, Helpers}
+import play.mvc.Http.Status
+import uk.gov.hmrc.http.HttpResponse
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class GatewayNPSControllerSpec extends PlaySpec with FakePBIKApplication {
+class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with Matchers {
 
-  implicit lazy override val app: Application = new GuiceApplicationBuilder()
-    .configure(config)
-    .overrides(bind(classOf[HmrcTierConnectorWrapped]).toInstance(mock(classOf[HmrcTierConnectorWrapped])))
-    .overrides(bind(classOf[ControllerUtils]).to(classOf[StubbedControllerUtils]))
-    .overrides(bind(classOf[MinimalAuthAction]).to(classOf[TestMinimalAuthAction]))
-    .build()
+  private val fakeRequest: FakeRequest[AnyContentAsEmpty.type]   = FakeRequest("GET", "/test")
+  private val fakeRequestWithBody: FakeRequest[AnyContentAsJson] =
+    FakeRequest("POST", "/test").withJsonBody(Json.obj("key" -> "value"))
+  private val parser: BodyParsers.Default                        = app.injector.instanceOf[BodyParsers.Default]
 
-  class FakeResponse extends HttpResponse {
-    override val headers: Map[String, Seq[String]] = Map[scala.Predef.String, scala.Seq[scala.Predef.String]]()
-    override def status: Int                       = Status.OK
-    override val json: JsValue                     = Json.parse(sampleBikJson)
-    override val body: String                      = sampleBikJson
+  private val uuid = "8c5d7809-0eec-4257-b4ad-fe0125cefb2d"
+
+  private val headersResponse: Map[String, Seq[String]] = Map(
+    "key1" -> Seq("value1"),
+    "key3" -> Seq("value1", "value2"),
+    "key2" -> Seq("value1")
+  )
+
+  def expectedResponse(status: Int, body: JsValue): HttpResponse = HttpResponse(status, body, headersResponse)
+  def expectedResponse(status: Int): HttpResponse                = expectedResponse(status, Json.toJson("Success"))
+
+  def assertResult(result: Result, status: Int): Unit = {
+    val expectedHeaders = headersResponse
+      .flatMap { case (key, values) => values.map(value => (key, value)) }
+      .toSeq
+      .sortBy(_._1)
+    val resultF         = Future.successful(result)
+
+    Helpers.status(resultF)          shouldBe status
+    Helpers.contentAsString(resultF) shouldBe expectedResponse(status).json.toString()
+    Helpers.headers(resultF).toSeq   shouldBe expectedHeaders
   }
 
-  val StubbedGateway: GatewayNPSController = {
+  trait Setup {
+    private val authAction             = new TestMinimalAuthAction(parser)
+    val pbikConfig: PbikConfig         = app.injector.instanceOf[PbikConfig]
+    val mockNpsConnector: NpsConnector = mock(classOf[NpsConnector])
 
-    val gnc = app.injector.instanceOf[GatewayNPSController]
+    when(mockNpsConnector.generateNewUUID).thenReturn(uuid)
 
-    when(gnc.tierConnector.retrieveDataGet(anyString)(any[HeaderCarrier]))
-      .thenReturn(Future.successful(new FakeResponse))
-    when(
-      gnc.tierConnector.retrieveDataPost(anyString, any[JsValue])(
-        any[HeaderCarrier],
-        any[Request[_]]
-      )
-    )
-      .thenReturn(Future.successful(new FakeResponse))
+    val controller = new GatewayNPSController(mockNpsConnector, authAction, stubControllerComponents())
 
-    when(gnc.tierConnector.getRegisteredBenefits(any[PbikCredentials], anyInt())(any[HeaderCarrier]))
-      .thenReturn(Future.successful(new FakeResponse))
-    when(
-      gnc.tierConnector
-        .updateBenefitTypes(anyString, any[BenefitListUpdateRequest])(any[HeaderCarrier], any[Request[_]])
-    )
-      .thenReturn(Future.successful(new FakeResponse))
-    gnc
+    def mockGetPbikCredentials(response: Future[PbikCredentials]): Unit =
+      when(mockNpsConnector.getPbikCredentials(anyString(), anyString())(any())).thenReturn(response)
   }
 
-  "When getting Benefits Types the Controller " should {
-    " parse a response correctly and not mutate the returned response body " in {
-      val gateway = StubbedGateway
-      val result  = gateway.getRegisteredBenefits("123/TEST1", 2015).apply(mockrequest)
+  "GatewayNPSController" when {
 
-      status(result)                     must be(OK)
-      contentAsJson(result).as[Seq[Bik]] must be(biks)
-    }
-  }
-
-  "When getting exclusions the Controller " should {
-    " parse a response correctly and not mutate the returned response body " in {
-      val gateway = StubbedGateway
-      val result  = gateway.getExclusionsForEmployer("123/TEST1", 2015, 37).apply(mockrequest)
-      status(result)          must be(OK)
-      contentAsString(result) must be(sampleBikJson)
-    }
-  }
-
-  "When updating exclusions the Controller " should {
-    " parse a response correctly and not mutate the returned response body - update " in {
-      val gateway = StubbedGateway
-      val result  = gateway.updateExclusionsForEmployer("123/TEST1", 2015, 37).apply(mockrequest)
-      status(result)          must be(OK)
-      contentAsString(result) must be(sampleBikJson)
+    ".getBenefitTypes" when {
+      forAll(allPlayFrameworkStatusCodes) { status =>
+        s"return the $status Result" in new Setup {
+          when(mockNpsConnector.getBenefitTypes(anyInt())(any()))
+            .thenReturn(Future.successful(expectedResponse(status)))
+          val result: Result = await(controller.getBenefitTypes(2020)(fakeRequest))
+          assertResult(result, status)
+        }
+      }
     }
 
-    " parse a response correctly and not mutate the returned response body - removal " in {
-      val gateway = StubbedGateway
-      val result  = gateway.removeExclusionForEmployer("123/TEST1", 2015, 37).apply(mockrequest)
-      status(result)          must be(OK)
-      contentAsString(result) must be(sampleBikJson)
-    }
-  }
+    ".getRegisteredBenefits" when {
+      forAll(allPlayFrameworkStatusCodes) { status =>
+        s"return the $status Result" in new Setup {
+          mockGetPbikCredentials(Future.successful(mockCredentials))
+          when(mockNpsConnector.getRegisteredBenefits(any(), anyInt())(any()))
+            .thenReturn(Future.successful(expectedResponse(status)))
+          val result: Result =
+            await(controller.getRegisteredBenefits("fake_office_number", "fake_office_reference", 2020)(fakeRequest))
+          assertResult(result, status)
+        }
+      }
 
-  "When removing exclusions the Controller " should {
-    " parse a response correctly and not mutate the returned response body " in {
-      val gateway = StubbedGateway
-      val result  = gateway.removeExclusionForEmployer("123/TEST1", 2015, 37).apply(mockrequest)
-      status(result)          must be(OK)
-      contentAsString(result) must be(sampleBikJson)
+      "return exception when getPbikCredentials fails" in new Setup {
+        mockGetPbikCredentials(Future.failed(new Exception("Failed to get credentials")))
+        val exception: Exception = intercept[Exception](
+          await(controller.getRegisteredBenefits("fake_office_number", "fake_office_reference", 2020)(fakeRequest))
+        )
+        exception.getMessage shouldBe "Failed to get credentials"
+      }
     }
+
+    ".getExclusionsForEmployer" when {
+      forAll(allPlayFrameworkStatusCodes) { status =>
+        s"return the $status Result" in new Setup {
+          mockGetPbikCredentials(Future.successful(mockCredentials))
+          when(mockNpsConnector.getAllExcludedPeopleForABenefit(any(), anyInt(), anyString())(any()))
+            .thenReturn(Future.successful(expectedResponse(status)))
+          val result: Result =
+            await(
+              controller.getExclusionsForEmployer("fake_office_number", "fake_office_reference", 2020, "iabd")(
+                fakeRequest
+              )
+            )
+          assertResult(result, status)
+        }
+      }
+
+      "return exception when getPbikCredentials fails" in new Setup {
+        mockGetPbikCredentials(Future.failed(new Exception("Failed to get credentials")))
+        val exception: Exception = intercept[Exception](
+          await(
+            controller.getExclusionsForEmployer("fake_office_number", "fake_office_reference", 2020, "iabd")(
+              fakeRequest
+            )
+          )
+        )
+        exception.getMessage shouldBe "Failed to get credentials"
+      }
+    }
+
+    ".updateBenefitTypes" when {
+      forAll(allPlayFrameworkStatusCodes) { status =>
+        s"return the $status Result" in new Setup {
+          mockGetPbikCredentials(Future.successful(mockCredentials))
+          when(mockNpsConnector.updateBenefitTypes(any(), anyInt(), any())(any()))
+            .thenReturn(Future.successful(expectedResponse(status)))
+          val result: Result =
+            await(
+              controller.updateBenefitTypes("fake_office_number", "fake_office_reference", 2020)(fakeRequestWithBody)
+            )
+          assertResult(result, status)
+        }
+      }
+
+      s"return the OK Result when no body" in new Setup {
+        mockGetPbikCredentials(Future.successful(mockCredentials))
+        when(mockNpsConnector.updateBenefitTypes(any(), anyInt(), any())(any()))
+          .thenReturn(Future.successful(expectedResponse(Status.OK)))
+        val result: Result =
+          await(
+            controller.updateBenefitTypes("fake_office_number", "fake_office_reference", 2020)(
+              fakeRequest
+            )
+          )
+        assertResult(result, Status.OK)
+      }
+
+      "return exception when getPbikCredentials fails" in new Setup {
+        mockGetPbikCredentials(Future.failed(new Exception("Failed to get credentials")))
+        val exception: Exception = intercept[Exception](
+          await(controller.updateBenefitTypes("fake_office_number", "fake_office_reference", 2020)(fakeRequestWithBody))
+        )
+        exception.getMessage shouldBe "Failed to get credentials"
+      }
+    }
+
+    ".updateExclusionsForEmployer" when {
+      forAll(allPlayFrameworkStatusCodes) { status =>
+        s"return the $status Result" in new Setup {
+          mockGetPbikCredentials(Future.successful(mockCredentials))
+          when(mockNpsConnector.updateExcludedPeopleForABenefit(any(), anyInt(), any())(any()))
+            .thenReturn(Future.successful(expectedResponse(status)))
+          val result: Result =
+            await(
+              controller.updateExclusionsForEmployer("fake_office_number", "fake_office_reference", 2020)(
+                fakeRequestWithBody
+              )
+            )
+          assertResult(result, status)
+        }
+      }
+
+      s"return the OK Result when no body" in new Setup {
+        mockGetPbikCredentials(Future.successful(mockCredentials))
+        when(mockNpsConnector.updateExcludedPeopleForABenefit(any(), anyInt(), any())(any()))
+          .thenReturn(Future.successful(expectedResponse(Status.OK)))
+        val result: Result =
+          await(
+            controller.updateExclusionsForEmployer("fake_office_number", "fake_office_reference", 2020)(
+              fakeRequest
+            )
+          )
+        assertResult(result, Status.OK)
+      }
+
+      "return exception when getPbikCredentials fails" in new Setup {
+        mockGetPbikCredentials(Future.failed(new Exception("Failed to get credentials")))
+        val exception: Exception = intercept[Exception](
+          await(
+            controller.updateExclusionsForEmployer("fake_office_number", "fake_office_reference", 2020)(
+              fakeRequestWithBody
+            )
+          )
+        )
+        exception.getMessage shouldBe "Failed to get credentials"
+      }
+    }
+
+    ".removeExclusionForEmployer" when {
+      forAll(allPlayFrameworkStatusCodes) { status =>
+        s"return the $status Result" in new Setup {
+          mockGetPbikCredentials(Future.successful(mockCredentials))
+          when(mockNpsConnector.removeExcludedPeopleForABenefit(any(), anyInt(), any())(any()))
+            .thenReturn(Future.successful(expectedResponse(status)))
+          val result: Result =
+            await(
+              controller.removeExclusionForEmployer("fake_office_number", "fake_office_reference", 2020)(
+                fakeRequestWithBody
+              )
+            )
+          assertResult(result, status)
+        }
+      }
+
+      s"return the OK Result when no body" in new Setup {
+        mockGetPbikCredentials(Future.successful(mockCredentials))
+        when(mockNpsConnector.removeExcludedPeopleForABenefit(any(), anyInt(), any())(any()))
+          .thenReturn(Future.successful(expectedResponse(Status.OK)))
+        val result: Result =
+          await(
+            controller.removeExclusionForEmployer("fake_office_number", "fake_office_reference", 2020)(
+              fakeRequest
+            )
+          )
+        assertResult(result, Status.OK)
+      }
+
+      "return exception when getPbikCredentials fails" in new Setup {
+        mockGetPbikCredentials(Future.failed(new Exception("Failed to get credentials")))
+        val exception: Exception = intercept[Exception](
+          await(
+            controller.removeExclusionForEmployer("fake_office_number", "fake_office_reference", 2020)(
+              fakeRequestWithBody
+            )
+          )
+        )
+        exception.getMessage shouldBe "Failed to get credentials"
+      }
+    }
+
   }
 
 }
