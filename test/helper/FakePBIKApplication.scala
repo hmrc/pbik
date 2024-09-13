@@ -49,6 +49,7 @@ trait FakePBIKApplication extends GuiceOneAppPerSuite { this: TestSuite =>
     .build()
 
   val mockCredentials: PbikCredentials = PbikCredentials("fake_emp_id", "fake_scheme_name", "fake_office_ref")
+  val fakeIabd                         = "fake_iabd"
 
   val allPlayFrameworkStatusCodes: Iterable[Int] = (200 to 599).sorted
 

@@ -52,13 +52,16 @@ class PbikConfig @Inject() (conf: Configuration) {
   def getEmployerDetailsPath(taxDistrictNumber: String, payeNumber: String) =
     s"$baseNPSJsonURL/paye-scheme/$taxDistrictNumber/$payeNumber/summary"
 
-  def getAllExcludedPeopleForABenefitPath(credentials: PbikCredentials, year: Int, ibdtype: String) =
-    s"$baseNPSJsonURL/${credentials.employmentIdentifier}/payrolled-benefits-in-kind/exclusion-list/$year/$ibdtype"
+  def getAllExcludedPeopleForABenefitPath(credentials: PbikCredentials, year: Int, iabd: String) =
+    s"$baseNPSJsonURL/${credentials.employmentIdentifier}/payrolled-benefits-in-kind/exclusion-list/$year/$iabd"
 
-  def putExcludedPeopleForABenefitPath(credentials: PbikCredentials, year: Int) =
+  def postExcludedPeopleForABenefitPath(credentials: PbikCredentials, year: Int) =
     s"$baseNPSJsonURL/${credentials.employmentIdentifier}/payrolled-benefits-in-kind/exclusion-list/$year"
 
-  def removeExcludedPeopleForABenefitPath(credentials: PbikCredentials, year: Int) =
-    s"$baseNPSJsonURL/${credentials.employmentIdentifier}/payrolled-benefits-in-kind/exclusion-list/$year"
+  def removeExcludedPeopleForABenefitPath(credentials: PbikCredentials, year: Int, iabd: String) =
+    s"$baseNPSJsonURL/${credentials.employmentIdentifier}/payrolled-benefits-in-kind/exclusion-list/$year/$iabd"
+
+  def postTracePeopleByPersonalDetailsPath(credentials: PbikCredentials, year: Int): String =
+    s"$baseNPSJsonURL/${credentials.employmentIdentifier}/$year/trace"
 
 }

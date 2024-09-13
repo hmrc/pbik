@@ -58,12 +58,12 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
 
   trait Setup {
 
-    val mockHttpClient: HttpClientV2             = mock(classOf[HttpClientV2])
-    val mockRequestBuilderGet: RequestBuilder    = mock(classOf[RequestBuilder])
-    val mockRequestBuilderDelete: RequestBuilder = mock(classOf[RequestBuilder])
-    val mockRequestBuilderPut: RequestBuilder    = mock(classOf[RequestBuilder])
-    val pbikConfig: PbikConfig                   = app.injector.instanceOf[PbikConfig]
-    val uuid: String                             = "8c5d7809-0eec-4257-b4ad-fe0125cefb2c"
+    val mockHttpClient: HttpClientV2           = mock(classOf[HttpClientV2])
+    val mockRequestBuilderGet: RequestBuilder  = mock(classOf[RequestBuilder])
+    val mockRequestBuilderPost: RequestBuilder = mock(classOf[RequestBuilder])
+    val mockRequestBuilderPut: RequestBuilder  = mock(classOf[RequestBuilder])
+    val pbikConfig: PbikConfig                 = app.injector.instanceOf[PbikConfig]
+    val uuid: String                           = "8c5d7809-0eec-4257-b4ad-fe0125cefb2c"
 
     val connector: NpsConnector =
       new NpsConnector(mockHttpClient, pbikConfig)
@@ -74,11 +74,11 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
       }
 
     when(mockHttpClient.get(any())(any())).thenReturn(mockRequestBuilderGet)
-    when(mockHttpClient.delete(any())(any())).thenReturn(mockRequestBuilderDelete)
+    when(mockHttpClient.post(any())(any())).thenReturn(mockRequestBuilderPost)
     when(mockHttpClient.put(any())(any())).thenReturn(mockRequestBuilderPut)
 
     when(mockRequestBuilderGet.setHeader(any())).thenReturn(mockRequestBuilderGet)
-    when(mockRequestBuilderDelete.setHeader(any())).thenReturn(mockRequestBuilderDelete)
+    when(mockRequestBuilderPost.setHeader(any())).thenReturn(mockRequestBuilderPost)
     when(mockRequestBuilderPut.setHeader(any())).thenReturn(mockRequestBuilderPut)
 
     private def mockExecute(
@@ -90,9 +90,9 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
     def mockGetEndpoint(expectedResponse: Future[HttpResponse]): OngoingStubbing[Future[HttpResponse]] =
       mockExecute(mockRequestBuilderGet, expectedResponse)
 
-    def mockDeleteEndpoint(expectedResponse: Future[HttpResponse]): OngoingStubbing[RequestBuilder] = {
-      mockExecute(mockRequestBuilderDelete, expectedResponse)
-      when(mockRequestBuilderDelete.withBody(any[JsValue])(any(), any(), any())).thenReturn(mockRequestBuilderDelete)
+    def mockPostEndpoint(expectedResponse: Future[HttpResponse]): OngoingStubbing[RequestBuilder] = {
+      mockExecute(mockRequestBuilderPost, expectedResponse)
+      when(mockRequestBuilderPost.withBody(any[JsValue])(any(), any(), any())).thenReturn(mockRequestBuilderPost)
     }
 
     def mockPutEndpoint(expectedResponse: Future[HttpResponse]): OngoingStubbing[RequestBuilder] = {
@@ -102,7 +102,7 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
 
     def gatherHeaderMockInfo(): Iterable[(String, String)] = {
       val getHeaders  = getAllHeadersFor(mockRequestBuilderGet)
-      val postHeaders = getAllHeadersFor(mockRequestBuilderDelete)
+      val postHeaders = getAllHeadersFor(mockRequestBuilderPost)
       val putHeaders  = getAllHeadersFor(mockRequestBuilderPut)
       (getHeaders ++ postHeaders ++ putHeaders).toSet
     }
@@ -235,7 +235,7 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
     ".updateExcludedPeopleForABenefit" when {
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status HttpResponse" in new Setup {
-          mockPutEndpoint(Future.successful(expectedResponse(status)))
+          mockPostEndpoint(Future.successful(expectedResponse(status)))
           val result: HttpResponse = await(
             connectorWithMockUuid
               .updateExcludedPeopleForABenefit(mockCredentials, 2020, mockJsonBody)
@@ -248,10 +248,23 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
     ".removeExcludedPeopleForABenefit" when {
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status HttpResponse" in new Setup {
-          mockDeleteEndpoint(Future.successful(expectedResponse(status)))
+          mockPostEndpoint(Future.successful(expectedResponse(status)))
           val result: HttpResponse = await(
             connectorWithMockUuid
-              .removeExcludedPeopleForABenefit(mockCredentials, 2020, mockJsonBody)
+              .removeExcludedPeopleForABenefit(mockCredentials, 2020, fakeIabd, mockJsonBody)
+          )
+          assertResult(result, status, buildExpectedHeaders)
+        }
+      }
+    }
+
+    ".tracePeopleByPersonalDetails" when {
+      forAll(allPlayFrameworkStatusCodes) { status =>
+        s"return the $status HttpResponse" in new Setup {
+          mockPostEndpoint(Future.successful(expectedResponse(status)))
+          val result: HttpResponse = await(
+            connectorWithMockUuid
+              .tracePeopleByPersonalDetails(mockCredentials, 2020, mockJsonBody)
           )
           assertResult(result, status, buildExpectedHeaders)
         }

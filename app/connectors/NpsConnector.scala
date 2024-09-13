@@ -121,24 +121,38 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
   def updateExcludedPeopleForABenefit(pbikCredentials: v1.PbikCredentials, taxYear: Int, exclusions: JsValue)(implicit
     hc: HeaderCarrier
   ): Future[HttpResponse] = {
-    val fullUrl    = pbikConfig.putExcludedPeopleForABenefitPath(pbikCredentials, taxYear)
-    val allHeaders = buildHeadersV1
+    val fullUrl = pbikConfig.postExcludedPeopleForABenefitPath(pbikCredentials, taxYear)
     http
-      .put(url"$fullUrl")
-      .setHeader(allHeaders: _*)
+      .post(url"$fullUrl")
+      .setHeader(buildHeadersV1: _*)
       .withBody(exclusions)
       .execute[HttpResponse]
   }
 
-  def removeExcludedPeopleForABenefit(pbikCredentials: v1.PbikCredentials, taxYear: Int, exclusions: JsValue)(implicit
+  def removeExcludedPeopleForABenefit(
+    pbikCredentials: v1.PbikCredentials,
+    taxYear: Int,
+    iabd: String,
+    exclusions: JsValue
+  )(implicit
     hc: HeaderCarrier
   ): Future[HttpResponse] = {
-    val fullUrl    = pbikConfig.removeExcludedPeopleForABenefitPath(pbikCredentials, taxYear)
-    val allHeaders = buildHeadersV1
+    val fullUrl = pbikConfig.removeExcludedPeopleForABenefitPath(pbikCredentials, taxYear, iabd)
     http
-      .delete(url"$fullUrl")
-      .setHeader(allHeaders: _*)
+      .post(url"$fullUrl")
+      .setHeader(buildHeadersV1: _*)
       .withBody(exclusions)
+      .execute[HttpResponse]
+  }
+
+  def tracePeopleByPersonalDetails(pbikCredentials: v1.PbikCredentials, taxYear: Int, body: JsValue)(implicit
+    hc: HeaderCarrier
+  ): Future[HttpResponse] = {
+    val fullUrl = pbikConfig.postTracePeopleByPersonalDetailsPath(pbikCredentials, taxYear)
+    http
+      .post(url"$fullUrl")
+      .setHeader(buildHeadersV1: _*)
+      .withBody(body)
       .execute[HttpResponse]
   }
 
