@@ -103,12 +103,27 @@ class GatewayNPSController @Inject() (
 
     }
 
-  def removeExclusionForEmployer(taxOfficeNumber: String, taxOfficeReference: String, year: Int): Action[AnyContent] =
+  def removeExclusionForEmployer(
+    taxOfficeNumber: String,
+    taxOfficeReference: String,
+    year: Int,
+    iabd: String
+  ): Action[AnyContent] =
     authenticate.async { implicit request =>
       val exclusions = request.body.asJson.getOrElse(JsObject.empty)
       npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference).flatMap { credentials: v1.PbikCredentials =>
         npsConnector
-          .removeExcludedPeopleForABenefit(credentials, year, exclusions)
+          .removeExcludedPeopleForABenefit(credentials, year, iabd, exclusions)
+          .map(mapHttpResponseToResult)
+      }
+    }
+
+  def tracePeopleByPersonalDetails(taxOfficeNumber: String, taxOfficeReference: String, year: Int): Action[AnyContent] =
+    authenticate.async { implicit request =>
+      val exclusions = request.body.asJson.getOrElse(JsObject.empty)
+      npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference).flatMap { credentials: v1.PbikCredentials =>
+        npsConnector
+          .tracePeopleByPersonalDetails(credentials, year, exclusions)
           .map(mapHttpResponseToResult)
       }
     }

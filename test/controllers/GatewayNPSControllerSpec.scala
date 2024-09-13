@@ -223,11 +223,11 @@ class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status Result" in new Setup {
           mockGetPbikCredentials(Future.successful(mockCredentials))
-          when(mockNpsConnector.removeExcludedPeopleForABenefit(any(), anyInt(), any())(any()))
+          when(mockNpsConnector.removeExcludedPeopleForABenefit(any(), anyInt(), anyString(), any())(any()))
             .thenReturn(Future.successful(expectedResponse(status)))
           val result: Result =
             await(
-              controller.removeExclusionForEmployer("fake_office_number", "fake_office_reference", 2020)(
+              controller.removeExclusionForEmployer("fake_office_number", "fake_office_reference", 2020, "fake_iabd")(
                 fakeRequestWithBody
               )
             )
@@ -237,11 +237,11 @@ class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with
 
       s"return the OK Result when no body" in new Setup {
         mockGetPbikCredentials(Future.successful(mockCredentials))
-        when(mockNpsConnector.removeExcludedPeopleForABenefit(any(), anyInt(), any())(any()))
+        when(mockNpsConnector.removeExcludedPeopleForABenefit(any(), anyInt(), anyString(), any())(any()))
           .thenReturn(Future.successful(expectedResponse(Status.OK)))
         val result: Result =
           await(
-            controller.removeExclusionForEmployer("fake_office_number", "fake_office_reference", 2020)(
+            controller.removeExclusionForEmployer("fake_office_number", "fake_office_reference", 2020, "fake_iabd")(
               fakeRequest
             )
           )
@@ -252,7 +252,49 @@ class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with
         mockGetPbikCredentials(Future.failed(new Exception("Failed to get credentials")))
         val exception: Exception = intercept[Exception](
           await(
-            controller.removeExclusionForEmployer("fake_office_number", "fake_office_reference", 2020)(
+            controller.removeExclusionForEmployer("fake_office_number", "fake_office_reference", 2020, "fake_iabd")(
+              fakeRequestWithBody
+            )
+          )
+        )
+        exception.getMessage shouldBe "Failed to get credentials"
+      }
+    }
+
+    ".tracePeopleByPersonalDetails" when {
+      forAll(allPlayFrameworkStatusCodes) { status =>
+        s"return the $status Result" in new Setup {
+          mockGetPbikCredentials(Future.successful(mockCredentials))
+          when(mockNpsConnector.tracePeopleByPersonalDetails(any(), anyInt(), any())(any()))
+            .thenReturn(Future.successful(expectedResponse(status)))
+          val result: Result =
+            await(
+              controller.tracePeopleByPersonalDetails("fake_office_number", "fake_office_reference", 2020)(
+                fakeRequestWithBody
+              )
+            )
+          assertResult(result, status)
+        }
+      }
+
+      s"return the OK Result when no body" in new Setup {
+        mockGetPbikCredentials(Future.successful(mockCredentials))
+        when(mockNpsConnector.tracePeopleByPersonalDetails(any(), anyInt(), any())(any()))
+          .thenReturn(Future.successful(expectedResponse(Status.OK)))
+        val result: Result =
+          await(
+            controller.tracePeopleByPersonalDetails("fake_office_number", "fake_office_reference", 2020)(
+              fakeRequest
+            )
+          )
+        assertResult(result, Status.OK)
+      }
+
+      "return exception when getPbikCredentials fails" in new Setup {
+        mockGetPbikCredentials(Future.failed(new Exception("Failed to get credentials")))
+        val exception: Exception = intercept[Exception](
+          await(
+            controller.tracePeopleByPersonalDetails("fake_office_number", "fake_office_reference", 2020)(
               fakeRequestWithBody
             )
           )
