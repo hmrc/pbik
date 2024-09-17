@@ -16,14 +16,15 @@
 
 package models.v1
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{JsValue, Json, OWrites, Reads}
 
-case class PbikCredentials(
-  employmentIdentifier: String,
-  payeSchemeOperatorName: String,
-  accountOfficeReference: String
-)
+case class PbikCredentials(employmentIdentifier: String)
 
 object PbikCredentials {
-  implicit val format: OFormat[PbikCredentials] = Json.format[PbikCredentials]
+
+  implicit val writes: OWrites[PbikCredentials] = Json.writes[PbikCredentials]
+
+  implicit val reads: Reads[PbikCredentials] = (json: JsValue) =>
+    (json \ "employmentIdentifier").validate[String].map(PbikCredentials(_))
+
 }
