@@ -193,7 +193,7 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
         s"return the $status HttpResponse" in new Setup {
           mockGetEndpoint(Future.successful(expectedResponse(status, Json.toJson(mockCredentials))))
           val result: PbikCredentials =
-            await(connectorWithMockUuid.getPbikCredentials("tax office test", "tax reference test"))
+            await(connectorWithMockUuid.getPbikCredentials("tax office test", "tax reference test", 2020))
           result shouldBe mockCredentials
         }
       }
@@ -203,7 +203,9 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
           val exceptionMessage: String = "An error occurred"
           mockGetEndpoint(Future.failed(new Exception(exceptionMessage)))
 
-          intercept[Exception](await(connectorWithMockUuid.getPbikCredentials("tax office test", "tax reference test")))
+          intercept[Exception](
+            await(connectorWithMockUuid.getPbikCredentials("tax office test", "tax reference test", 2020))
+          )
         }
       }
 
@@ -212,7 +214,7 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
           mockGetEndpoint(Future.successful(expectedResponse(Status.OK, Json.toJson("Wrong body"))))
 
           val exception: IllegalArgumentException = intercept[IllegalArgumentException](
-            await(connectorWithMockUuid.getPbikCredentials("tax office test", "tax reference test"))
+            await(connectorWithMockUuid.getPbikCredentials("tax office test", "tax reference test", 2020))
           )
 
           exception.getMessage should startWith("Invalid JSON received from NPS")

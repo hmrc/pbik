@@ -49,8 +49,8 @@ class PbikConfig @Inject() (conf: Configuration) {
 
   def getAllBenefitsPath(year: Int): String = s"$baseNPSJsonURL/payrolled-benefits-in-kind/current/$year"
 
-  def getEmployerDetailsPath(taxDistrictNumber: String, payeNumber: String) =
-    s"$baseNPSJsonURL/paye-scheme/$taxDistrictNumber/$payeNumber/summary"
+  def getEmployerDetailsPath(taxDistrictNumber: String, payeNumber: String, year: Int) =
+    s"$baseNPSJsonURL/paye-scheme/$taxDistrictNumber/$payeNumber/summary/$year"
 
   def getAllExcludedPeopleForABenefitPath(credentials: PbikCredentials, year: Int, iabd: String) =
     s"$baseNPSJsonURL/${credentials.employmentIdentifier}/payrolled-benefits-in-kind/exclusion-list/$year/$iabd"

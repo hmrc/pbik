@@ -75,7 +75,7 @@ class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with
     val controller = new GatewayNPSController(mockNpsConnector, authAction, stubControllerComponents())
 
     def mockGetPbikCredentials(response: Future[PbikCredentials]): Unit =
-      when(mockNpsConnector.getPbikCredentials(anyString(), anyString())(any())).thenReturn(response)
+      when(mockNpsConnector.getPbikCredentials(anyString(), anyString(), anyInt())(any())).thenReturn(response)
   }
 
   "GatewayNPSController" when {
