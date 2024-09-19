@@ -261,15 +261,15 @@ class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with
       }
     }
 
-    ".tracePeopleByPersonalDetails" when {
+    ".tracePeople" when {
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status Result" in new Setup {
           mockGetPbikCredentials(Future.successful(mockCredentials))
-          when(mockNpsConnector.tracePeopleByPersonalDetails(any(), anyInt(), any())(any()))
+          when(mockNpsConnector.tracePeople(any(), anyInt(), any())(any()))
             .thenReturn(Future.successful(expectedResponse(status)))
           val result: Result =
             await(
-              controller.tracePeopleByPersonalDetails("fake_office_number", "fake_office_reference", 2020)(
+              controller.tracePeople("fake_office_number", "fake_office_reference", 2020)(
                 fakeRequestWithBody
               )
             )
@@ -279,11 +279,11 @@ class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with
 
       s"return the OK Result when no body" in new Setup {
         mockGetPbikCredentials(Future.successful(mockCredentials))
-        when(mockNpsConnector.tracePeopleByPersonalDetails(any(), anyInt(), any())(any()))
+        when(mockNpsConnector.tracePeople(any(), anyInt(), any())(any()))
           .thenReturn(Future.successful(expectedResponse(Status.OK)))
         val result: Result =
           await(
-            controller.tracePeopleByPersonalDetails("fake_office_number", "fake_office_reference", 2020)(
+            controller.tracePeople("fake_office_number", "fake_office_reference", 2020)(
               fakeRequest
             )
           )
@@ -294,7 +294,7 @@ class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with
         mockGetPbikCredentials(Future.failed(new Exception("Failed to get credentials")))
         val exception: Exception = intercept[Exception](
           await(
-            controller.tracePeopleByPersonalDetails("fake_office_number", "fake_office_reference", 2020)(
+            controller.tracePeople("fake_office_number", "fake_office_reference", 2020)(
               fakeRequestWithBody
             )
           )

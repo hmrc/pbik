@@ -145,10 +145,10 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
       .execute[HttpResponse]
   }
 
-  def tracePeopleByPersonalDetails(pbikCredentials: v1.PbikCredentials, taxYear: Int, body: JsValue)(implicit
+  def tracePeople(pbikCredentials: v1.PbikCredentials, taxYear: Int, body: JsValue)(implicit
     hc: HeaderCarrier
   ): Future[HttpResponse] = {
-    val fullUrl = pbikConfig.postTracePeopleByPersonalDetailsPath(pbikCredentials, taxYear)
+    val fullUrl = pbikConfig.postTracePerson(pbikCredentials, taxYear)
     http
       .post(url"$fullUrl")
       .setHeader(buildHeadersV1: _*)
