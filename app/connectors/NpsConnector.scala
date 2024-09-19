@@ -88,10 +88,10 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
       .execute[HttpResponse]
   }
 
-  def getPbikCredentials(taxDistrictNumber: String, payeNumber: String)(implicit
+  def getPbikCredentials(taxDistrictNumber: String, payeNumber: String, year: Int)(implicit
     hc: HeaderCarrier
   ): Future[v1.PbikCredentials] = {
-    val fullUrl = pbikConfig.getEmployerDetailsPath(taxDistrictNumber, payeNumber)
+    val fullUrl = pbikConfig.getEmployerDetailsPath(taxDistrictNumber, payeNumber, year)
     http
       .get(url"$fullUrl")
       .setHeader(buildHeadersV1: _*)
