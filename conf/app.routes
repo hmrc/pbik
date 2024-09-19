@@ -5,7 +5,7 @@ GET /epaye/:taxOfficeNumber/:taxOfficeReference/:year                           
 GET /epaye/:taxOfficeNumber/:taxOfficeReference/:year/:iabd/exclusion                    @controllers.GatewayNPSController.getExclusionsForEmployer(taxOfficeNumber: String, taxOfficeReference: String,year:Int, iabd: String)
 POST /epaye/:taxOfficeNumber/:taxOfficeReference/:year/exclusion/update                  @controllers.GatewayNPSController.updateExclusionsForEmployer(taxOfficeNumber: String, taxOfficeReference: String,year:Int)
 DELETE /epaye/:taxOfficeNumber/:taxOfficeReference/:year/:iabd/exclusion/remove          @controllers.GatewayNPSController.removeExclusionForEmployer(taxOfficeNumber: String, taxOfficeReference: String,year:Int, iabd: String)
-POST /epaye/:taxOfficeNumber/:taxOfficeReference/:year/trace                             @controllers.GatewayNPSController.tracePeopleByPersonalDetails(taxOfficeNumber: String, taxOfficeReference: String,year:Int)
+POST /epaye/:taxOfficeNumber/:taxOfficeReference/:year/trace                             @controllers.GatewayNPSController.tracePeople(taxOfficeNumber: String, taxOfficeReference: String,year:Int)
 
 # Split just to see how many orgs and agents journey through the service
 POST /epaye/:taxOfficeNumber/:taxOfficeReference/:year/updatebenefittypes/agent          @controllers.GatewayNPSController.updateBenefitTypes(taxOfficeNumber: String, taxOfficeReference: String,year:Int)

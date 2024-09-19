@@ -260,13 +260,13 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
       }
     }
 
-    ".tracePeopleByPersonalDetails" when {
+    ".tracePeople" when {
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status HttpResponse" in new Setup {
           mockPostEndpoint(Future.successful(expectedResponse(status)))
           val result: HttpResponse = await(
             connectorWithMockUuid
-              .tracePeopleByPersonalDetails(mockCredentials, 2020, mockJsonBody)
+              .tracePeople(mockCredentials, 2020, mockJsonBody)
           )
           assertResult(result, status, buildExpectedHeaders)
         }

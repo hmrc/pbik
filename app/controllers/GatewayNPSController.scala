@@ -123,13 +123,13 @@ class GatewayNPSController @Inject() (
       }
     }
 
-  def tracePeopleByPersonalDetails(taxOfficeNumber: String, taxOfficeReference: String, year: Int): Action[AnyContent] =
+  def tracePeople(taxOfficeNumber: String, taxOfficeReference: String, year: Int): Action[AnyContent] =
     authenticate.async { implicit request =>
       val exclusions = request.body.asJson.getOrElse(JsObject.empty)
       npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference, year).flatMap {
         credentials: v1.PbikCredentials =>
           npsConnector
-            .tracePeopleByPersonalDetails(credentials, year, exclusions)
+            .tracePeople(credentials, year, exclusions)
             .map(mapHttpResponseToResult)
       }
     }
