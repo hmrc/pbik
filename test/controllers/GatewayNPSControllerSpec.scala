@@ -45,6 +45,14 @@ class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with
   private val uuid = "8c5d7809-0eec-4257-b4ad-fe0125cefb2d"
 
   private val headersResponse: Map[String, Seq[String]] = Map(
+    "key1"           -> Seq("value1"),
+    "key3"           -> Seq("value1", "value2"),
+    "key2"           -> Seq("value1"),
+    "Content-Type"   -> Seq("application/json"),
+    "Content-Length" -> Seq("4")
+  )
+
+  private val expectedHeaderResponse: Map[String, Seq[String]] = Map(
     "key1" -> Seq("value1"),
     "key3" -> Seq("value1", "value2"),
     "key2" -> Seq("value1")
@@ -54,7 +62,7 @@ class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with
   def expectedResponse(status: Int): HttpResponse                = expectedResponse(status, Json.toJson("Success"))
 
   def assertResult(result: Result, status: Int): Unit = {
-    val expectedHeaders = headersResponse
+    val expectedHeaders = expectedHeaderResponse
       .flatMap { case (key, values) => values.map(value => (key, value)) }
       .toSeq
       .sortBy(_._1)
