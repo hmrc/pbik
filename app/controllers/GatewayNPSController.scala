@@ -21,6 +21,7 @@ import connectors.NpsConnector
 import controllers.actions.MinimalAuthAction
 import models.v1
 import play.api.Logging
+import play.api.http.HeaderNames
 import play.api.libs.json.JsObject
 import play.api.mvc._
 import uk.gov.hmrc.http.HttpResponse
@@ -38,6 +39,8 @@ class GatewayNPSController @Inject() (
     extends BackendController(cc)
     with Logging {
 
+  private val notAllowCarryHeaders = Set(HeaderNames.CONTENT_LENGTH, HeaderNames.CONTENT_TYPE).map(_.toLowerCase)
+
   /** Maps an HttpResponse to a Play Result Because HttpResponse from play and Result from play have different ways of
     * representing headers, had to write this custom mapping logic to convert the headers from Map[String,
     * Seq[String\]\] to Seq[(String, String)]
@@ -49,10 +52,16 @@ class GatewayNPSController @Inject() (
   private def mapHttpResponseToResult(httpResponse: HttpResponse): Result = {
     val status  = httpResponse.status
     val body    = httpResponse.body
-    val headers = httpResponse.headers
-      .flatMap { case (key, values) => values.map(value => (key, value)) }
-      .toSeq
+    val headers = httpResponse.headers.toSeq
+      .flatMap { case (key, values) =>
+        if (!notAllowCarryHeaders.contains(key.toLowerCase)) {
+          values.map(value => (key, value))
+        } else {
+          Seq.empty
+        }
+      }
       .sortBy(_._1)
+
     Status(status)(body).withHeaders(headers: _*)
   }
 
