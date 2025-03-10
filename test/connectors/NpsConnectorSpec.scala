@@ -47,7 +47,7 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
 
   private def getAllHeadersFor(mockRequestBuilder: RequestBuilder): Iterable[(String, String)] = {
     val headerCapture: ArgumentCaptor[(String, String)] = ArgumentCaptor.forClass(classOf[(String, String)])
-    //ignore failure in case we are not able to capture the headers return empty list
+    // ignore failure in case we are not able to capture the headers return empty list
     Try(verify(mockRequestBuilder).setHeader(headerCapture.capture()))
     headerCapture.getAllValues.asScala
   }
@@ -156,7 +156,7 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
       }
     }
 
-    ".getRegisteredBenefits" when {
+    ".getRegisteredBenefits" when
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status HttpResponse" in new Setup {
           mockGetEndpoint(Future.successful(expectedResponse(status)))
@@ -165,9 +165,8 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
           assertResult(result, status, buildExpectedHeaders)
         }
       }
-    }
 
-    ".updateBenefitTypes" when {
+    ".updateBenefitTypes" when
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status HttpResponse" in new Setup {
           mockPutEndpoint(Future.successful(expectedResponse(status)))
@@ -176,9 +175,8 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
           assertResult(result, status, buildExpectedHeaders)
         }
       }
-    }
 
-    ".getBenefitTypes" when {
+    ".getBenefitTypes" when
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status HttpResponse" in new Setup {
           mockGetEndpoint(Future.successful(expectedResponse(status)))
@@ -186,7 +184,6 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
           assertResult(result, status, buildExpectedHeaders)
         }
       }
-    }
 
     ".getPbikCredentials" when {
       forAll(allPlayFrameworkStatusCodes) { status =>
@@ -222,7 +219,7 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
       }
     }
 
-    ".getAllExcludedPeopleForABenefit" when {
+    ".getAllExcludedPeopleForABenefit" when
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status HttpResponse" in new Setup {
           mockGetEndpoint(Future.successful(expectedResponse(status)))
@@ -232,9 +229,8 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
           assertResult(result, status, buildExpectedHeaders)
         }
       }
-    }
 
-    ".updateExcludedPeopleForABenefit" when {
+    ".updateExcludedPeopleForABenefit" when
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status HttpResponse" in new Setup {
           mockPostEndpoint(Future.successful(expectedResponse(status)))
@@ -245,9 +241,8 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
           assertResult(result, status, buildExpectedHeaders)
         }
       }
-    }
 
-    ".removeExcludedPeopleForABenefit" when {
+    ".removeExcludedPeopleForABenefit" when
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status HttpResponse" in new Setup {
           mockPostEndpoint(Future.successful(expectedResponse(status)))
@@ -258,9 +253,8 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
           assertResult(result, status, buildExpectedHeaders)
         }
       }
-    }
 
-    ".tracePeople" when {
+    ".tracePeople" when
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status HttpResponse" in new Setup {
           mockPostEndpoint(Future.successful(expectedResponse(status)))
@@ -271,7 +265,6 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
           assertResult(result, status, buildExpectedHeaders)
         }
       }
-    }
 
   }
 
