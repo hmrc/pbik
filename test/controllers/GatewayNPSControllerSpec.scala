@@ -88,7 +88,7 @@ class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with
 
   "GatewayNPSController" when {
 
-    ".getBenefitTypes" when {
+    ".getBenefitTypes" when
       forAll(allPlayFrameworkStatusCodes) { status =>
         s"return the $status Result" in new Setup {
           when(mockNpsConnector.getBenefitTypes(anyInt())(any()))
@@ -97,7 +97,6 @@ class GatewayNPSControllerSpec extends AnyWordSpec with FakePBIKApplication with
           assertResult(result, status)
         }
       }
-    }
 
     ".getRegisteredBenefits" when {
       forAll(allPlayFrameworkStatusCodes) { status =>
