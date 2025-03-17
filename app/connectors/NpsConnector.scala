@@ -47,15 +47,19 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
   def generateNewUUID: String = randomUUID.toString
 
   def getCorrelationId(hc: HeaderCarrier): String =
-    hc.requestId match {
-      case Some(requestId) =>
-        requestId.value match {
-          case requestIdPattern(prefix) =>
-            val lastTwelveChars = generateNewUUID.takeRight(12)
-            prefix + "-" + lastTwelveChars
-          case _                        => generateNewUUID
-        }
-      case _               => generateNewUUID
+    try {
+      val candidateUUID = hc.requestId
+        .map(_.value)
+        .flatMap(rid => requestIdPattern.findFirstMatchIn(rid).map(_.group(1)))
+        .map(prefix => s"$prefix-${generateNewUUID.takeRight(12)}")
+        .getOrElse(generateNewUUID)
+
+      // Validate the UUID by attempting to parse it
+      // happened once that prefix had not uuid type format so generated cid was invalid
+      java.util.UUID.fromString(candidateUUID)
+      candidateUUID
+    } catch {
+      case _: Exception => generateNewUUID
     }
 
   def getRegisteredBenefits(credentials: v1.PbikCredentials, year: Int)(implicit
