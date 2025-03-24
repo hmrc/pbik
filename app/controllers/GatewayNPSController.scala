@@ -39,7 +39,9 @@ class GatewayNPSController @Inject() (
     extends BackendController(cc)
     with Logging {
 
-  private val notAllowCarryHeaders = Set(HeaderNames.CONTENT_LENGTH, HeaderNames.CONTENT_TYPE).map(_.toLowerCase)
+  private val notAllowCarryHeaders =
+    Set(HeaderNames.CONTENT_LENGTH, HeaderNames.CONTENT_TYPE, HeaderNames.TRANSFER_ENCODING)
+      .map(_.toLowerCase)
 
   /** Maps an HttpResponse to a Play Result Because HttpResponse from play and Result from play have different ways of
     * representing headers, had to write this custom mapping logic to convert the headers from Map[String,
