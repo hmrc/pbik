@@ -1,80 +1,47 @@
-pbik
-=============
 
-This microservice retrieves and writes data from/to a [HoD] system called [NPS], for updating benefits/ expenses and
+# pbik
+
+This microservice retrieves and writes data from/to a `HoD` system called `HIP`, for updating benefits/ expenses and
 excluding/ rescinding individual employees. The frontend service this interacts with is pbik-frontend.
 
-Requirements
-------------
+### Running
 
-This service is written in [Scala](http://www.scala-lang.org/) and [Play](http://playframework.com/), so needs at least
-a [JRE] to run.
+##### To run this Service you will need:
 
-API
-------------
+1) [Service Manager 2](https://github.com/hmrc/sm2) installed
+2) [SBT](https://www.scala-sbt.org) Version `>=1.x` installed
 
-| *Path*                                           | *Method* |
-|--------------------------------------------------|----------|
-| `/epaye/:year/getbenefittypes`                   | **GET**  |
-| `/epaye/:empRef/:year`                           | **GET**  |
-| `/epaye/:empRef/:year/:ibdtype/exclusion`        | **GET**  |
-| `/epaye/:empRef/:year/updatebenefittypes`        | **POST** |
-| `/epaye/:empRef/:year/:ibdtype/exclusion/update` | **POST** |
-| `/epaye/:empRef/:year/:ibdtype/exclusion/remove` | **POST** |
+### API
 
-Configuration
----
+API is defined [here](https://github.com/hmrc/pbik/blob/main/conf/app.routes)
 
-This service requires configuration for other services, for example [NPS] requires:
+### Configuration
+
+This service requires configuration for other services, for example `HIP` requires:
 
 | *Key*                                    | *Description*                   |
 |------------------------------------------|---------------------------------|
-| `microservice.services.nps-hod.protocol` | The protocol of the NPS service |
-| `microservice.services.nps-hod.host`     | The host of the NPS service     |
-| `microservice.services.nps-hod.port`     | The port of the NPS service     |
+| `microservice.services.nps.hip.protocol` | The protocol of the HIP service |
+| `microservice.services.nps.hip.host`     | The host of the HIP service     |
+| `microservice.services.nps.hip.port`     | The port of the HIP service     |
 
-Acronyms
----
+#### Starting the application:
 
-In the context of this application we use the following acronyms and define their
-meanings. Provided you will also find a web link to discover more about the systems
-and technology.
+Launch services using `sm2 --start PBIK_ALL`
 
-* [API]: Application Programming Interface
+If you want to run it locally:
 
-* [HoD]: Head of Duty
+- `sm2 --stop PBIK`
+- `sbt run`
 
-* [JRE]: Java Runtime Environment
+This application runs on port 9583.
 
-* [JSON]: JavaScript Object Notation
+### Testing
 
-* [NI]: National Insurance
+Run `./run_all_tests.sh`. This also runs scalafmt and does coverage testing.
 
-* [NINO]: National Insurance Number
+or `sbt test` to run the tests only.
 
-* [NPS]: National Insurance and Pay As You Earn Service
+### License
 
-* [URL]: Uniform Resource Locator
-
-License
----
-
-This code is open source software licensed under
-the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
-
-
-[NPS]: http://www.publications.parliament.uk/pa/cm201012/cmselect/cmtreasy/731/73107.htm
-
-[HoD]: http://webarchive.nationalarchives.gov.uk/+/http://www.hmrc.gov.uk/manuals/sam/samglossary/samgloss249.htm
-
-[NINO]: http://www.hmrc.gov.uk/manuals/nimmanual/nim39110.htm
-
-[NI]: https://www.gov.uk/national-insurance/overview
-
-[JRE]: http://www.oracle.com/technetwork/java/javase/overview/index.html
-
-[API]: https://en.wikipedia.org/wiki/Application_programming_interface
-
-[URL]: https://en.wikipedia.org/wiki/Uniform_Resource_Locator
-
-[JSON]: http://www.json.org/
+This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").

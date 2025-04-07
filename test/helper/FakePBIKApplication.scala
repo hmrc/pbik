@@ -20,6 +20,7 @@ import models.v1.PbikCredentials
 import org.scalatest.TestSuite
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
+import play.api.http.Status
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
@@ -51,6 +52,17 @@ trait FakePBIKApplication extends GuiceOneAppPerSuite { this: TestSuite =>
   val mockCredentials: PbikCredentials = PbikCredentials("fake_emp_id")
   val fakeIabd: String                 = "fake_iabd"
 
-  val allPlayFrameworkStatusCodes: Iterable[Int] = (200 to 599).sorted
+  // if reflection stop to work, use something like `(100 to 555).sorted`
+  private def getAllHttpStatusCodes: Seq[Int] = {
+    val statusClass = play.api.http.Status
+    statusClass.getClass.getDeclaredFields
+      .filter(_.getType == classOf[Int])
+      .map { field =>
+        field.setAccessible(true)
+        field.getInt(statusClass)
+      }
+  }.toSeq.sorted
+
+  val allPlayFrameworkStatusCodes: Iterable[Int] = getAllHttpStatusCodes
 
 }
