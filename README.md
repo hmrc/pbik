@@ -17,7 +17,7 @@ API is defined [here](https://github.com/hmrc/pbik/blob/main/conf/app.routes)
 
 ### Configuration
 
-This service requires configuration for other services, for example `HIP` requires:
+This service requires configuration for other services, for example `NPS` requires:
 
 | *Key*                                    | *Description*                   |
 |------------------------------------------|---------------------------------|
