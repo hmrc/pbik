@@ -52,7 +52,7 @@ trait FakePBIKApplication extends GuiceOneAppPerSuite { this: TestSuite =>
   val mockCredentials: PbikCredentials = PbikCredentials("fake_emp_id")
   val fakeIabd: String                 = "fake_iabd"
 
-  // if reflection stop to work, use something like `(100 to 555).sorted`
+  // if reflection stops working, use something like `(100 to 555).sorted`
   private def getAllHttpStatusCodes: Seq[Int] = {
     val statusClass = play.api.http.Status
     statusClass.getClass.getDeclaredFields
