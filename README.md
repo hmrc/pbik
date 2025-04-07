@@ -21,9 +21,9 @@ This service requires configuration for other services, for example `NPS` requir
 
 | *Key*                                    | *Description*                   |
 |------------------------------------------|---------------------------------|
-| `microservice.services.nps.hip.protocol` | The protocol of the HIP service |
-| `microservice.services.nps.hip.host`     | The host of the HIP service     |
-| `microservice.services.nps.hip.port`     | The port of the HIP service     |
+| `microservice.services.nps.hip.protocol` | The protocol of the NPS (HIP) service |
+| `microservice.services.nps.hip.host`     | The host of the NPS (HIP) service     |
+| `microservice.services.nps.hip.port`     | The port of the NPS (HIP) service     |
 
 #### Starting the application:
 
