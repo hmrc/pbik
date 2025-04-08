@@ -52,9 +52,14 @@ class GatewayNPSController @Inject() (
     *   play.api.mvc.Result
     */
   private def mapHttpResponseToResult(httpResponse: HttpResponse): Result = {
-    val status  = httpResponse.status
-    val body    = httpResponse.body
-    val headers = httpResponse.headers.toSeq
+    val status           = httpResponse.status
+    val body             = httpResponse.body
+    val inputHeaders     = httpResponse.headers.toSeq
+    val inputHeaderNames = inputHeaders.map(_._1)
+
+    logger.info(s"[GatewayNPSController][mapHttpResponseToResult] Headers from HIP: $inputHeaderNames")
+
+    val headers = inputHeaders
       .flatMap { case (key, values) =>
         if (!notAllowCarryHeaders.contains(key.toLowerCase)) {
           values.map(value => (key, value))
@@ -63,6 +68,10 @@ class GatewayNPSController @Inject() (
         }
       }
       .sortBy(_._1)
+
+    val outputHeaders = headers.map(_._1)
+
+    logger.info(s"[GatewayNPSController][mapHttpResponseToResult] Filtered headers from HIP: $outputHeaders")
 
     Status(status)(body).withHeaders(headers: _*)
   }
