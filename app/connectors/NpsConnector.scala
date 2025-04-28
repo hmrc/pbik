@@ -101,6 +101,11 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
       .setHeader(buildHeadersV1: _*)
       .execute[HttpResponse]
       .map { response =>
+        if (response.status > 299) {
+          logger.error(
+            s"[HmrcTierConnectorWrapped][getPbikCredentials] Failed to get PbikCredentials from NPS, status: ${response.status}, body: ${response.body}"
+          )
+        }
         // fail fast in case not expected body
         response.json.validate[v1.PbikCredentials] match {
           case JsSuccess(value, _) =>
