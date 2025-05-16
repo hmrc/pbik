@@ -1,8 +1,8 @@
 
 # pbik
 
-This microservice retrieves and writes data from/to a `HoD` system called `NPS` via HIP, for updating benefits/ expenses and
-excluding/ rescinding individual employees. The frontend service this interacts with is pbik-frontend.
+This microservice retrieves and writes data from/to a `HoD` system called `NPS` via HIP, for updating benefits/expenses and
+excluding/rescinding individual employees. The frontend service this interacts with is pbik-frontend.
 
 ### Running
 
