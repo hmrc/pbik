@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "2.13.16"
+ThisBuild / scalaVersion := "3.7.3"
 ThisBuild / majorVersion := 9
 
 lazy val microservice = Project("pbik", file("."))
