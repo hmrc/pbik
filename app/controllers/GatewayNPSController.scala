@@ -73,7 +73,7 @@ class GatewayNPSController @Inject() (
 
     logger.info(s"[GatewayNPSController][mapHttpResponseToResult] Filtered headers from HIP: $outputHeaders")
 
-    Status(status)(body).withHeaders(headers: _*)
+    Status(status)(body).withHeaders(headers *)
   }
 
   def getBenefitTypes(year: Int): Action[AnyContent] = authenticate.async { implicit request =>
@@ -83,7 +83,7 @@ class GatewayNPSController @Inject() (
   def getRegisteredBenefits(taxOfficeNumber: String, taxOfficeReference: String, year: Int): Action[AnyContent] =
     authenticate.async { implicit request =>
       npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference, year).flatMap {
-        credentials: v1.PbikCredentials =>
+        (credentials: v1.PbikCredentials) =>
           npsConnector
             .getRegisteredBenefits(credentials, year)
             .map(mapHttpResponseToResult)
@@ -97,7 +97,7 @@ class GatewayNPSController @Inject() (
     iabd: String
   ): Action[AnyContent] = authenticate.async { implicit request =>
     npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference, year).flatMap {
-      credentials: v1.PbikCredentials =>
+      (credentials: v1.PbikCredentials) =>
         npsConnector
           .getAllExcludedPeopleForABenefit(credentials, year, iabd)
           .map(mapHttpResponseToResult)
@@ -108,7 +108,7 @@ class GatewayNPSController @Inject() (
     authenticate.async { implicit request =>
       val biksToUpdate = request.body.asJson.getOrElse(JsObject.empty)
       npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference, year).flatMap {
-        credentials: v1.PbikCredentials =>
+        (credentials: v1.PbikCredentials) =>
           npsConnector
             .updateBenefitTypes(credentials, year, biksToUpdate)
             .map(mapHttpResponseToResult)
@@ -119,7 +119,7 @@ class GatewayNPSController @Inject() (
     authenticate.async { implicit request =>
       val exclusions = request.body.asJson.getOrElse(JsObject.empty)
       npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference, year).flatMap {
-        credentials: v1.PbikCredentials =>
+        (credentials: v1.PbikCredentials) =>
           npsConnector
             .updateExcludedPeopleForABenefit(credentials, year, exclusions)
             .map(mapHttpResponseToResult)
@@ -136,7 +136,7 @@ class GatewayNPSController @Inject() (
     authenticate.async { implicit request =>
       val exclusions = request.body.asJson.getOrElse(JsObject.empty)
       npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference, year).flatMap {
-        credentials: v1.PbikCredentials =>
+        (credentials: v1.PbikCredentials) =>
           npsConnector
             .removeExcludedPeopleForABenefit(credentials, year, iabd, exclusions)
             .map(mapHttpResponseToResult)
@@ -147,7 +147,7 @@ class GatewayNPSController @Inject() (
     authenticate.async { implicit request =>
       val exclusions = request.body.asJson.getOrElse(JsObject.empty)
       npsConnector.getPbikCredentials(taxOfficeNumber, taxOfficeReference, year).flatMap {
-        credentials: v1.PbikCredentials =>
+        (credentials: v1.PbikCredentials) =>
           npsConnector
             .tracePeople(credentials, year, exclusions)
             .map(mapHttpResponseToResult)

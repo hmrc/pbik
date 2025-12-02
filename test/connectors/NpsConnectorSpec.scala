@@ -85,26 +85,26 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
       builder: RequestBuilder,
       expectedResponse: Future[HttpResponse]
     ): OngoingStubbing[Future[HttpResponse]] =
-      when(builder.execute(any[HttpReads[HttpResponse]], any())).thenReturn(expectedResponse)
+      when(builder.execute(using any[HttpReads[HttpResponse]], any())).thenReturn(expectedResponse)
 
     def mockGetEndpoint(expectedResponse: Future[HttpResponse]): OngoingStubbing[Future[HttpResponse]] =
       mockExecute(mockRequestBuilderGet, expectedResponse)
 
     def mockPostEndpoint(expectedResponse: Future[HttpResponse]): OngoingStubbing[RequestBuilder] = {
       mockExecute(mockRequestBuilderPost, expectedResponse)
-      when(mockRequestBuilderPost.withBody(any[JsValue])(any(), any(), any())).thenReturn(mockRequestBuilderPost)
+      when(mockRequestBuilderPost.withBody(any[JsValue])(using any(), any(), any())).thenReturn(mockRequestBuilderPost)
     }
 
     def mockPutEndpoint(expectedResponse: Future[HttpResponse]): OngoingStubbing[RequestBuilder] = {
       mockExecute(mockRequestBuilderPut, expectedResponse)
-      when(mockRequestBuilderPut.withBody(any[JsValue])(any(), any(), any())).thenReturn(mockRequestBuilderPut)
+      when(mockRequestBuilderPut.withBody(any[JsValue])(using any(), any(), any())).thenReturn(mockRequestBuilderPut)
     }
 
-    def gatherHeaderMockInfo(): Iterable[(String, String)] = {
+    def gatherHeaderMockInfo(): Seq[(String, String)] = {
       val getHeaders  = getAllHeadersFor(mockRequestBuilderGet)
       val postHeaders = getAllHeadersFor(mockRequestBuilderPost)
       val putHeaders  = getAllHeadersFor(mockRequestBuilderPut)
-      (getHeaders ++ postHeaders ++ putHeaders).toSet
+      (getHeaders ++ postHeaders ++ putHeaders).toSeq.distinct
     }
 
     val buildExpectedHeaders: Seq[(String, String)] = Seq(
@@ -114,9 +114,9 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
     )
 
     def assertResult(result: HttpResponse, status: Int, expectedHeaders: Seq[(String, String)]): Unit = {
-      result.status               shouldBe status
-      result.body                 shouldBe expectedResponse(status).json.toString()
-      gatherHeaderMockInfo().head shouldBe expectedHeaders
+      result.status          shouldBe status
+      result.body            shouldBe expectedResponse(status).json.toString()
+      gatherHeaderMockInfo() shouldBe Seq(expectedHeaders)
     }
 
   }

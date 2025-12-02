@@ -28,6 +28,7 @@ import java.util.UUID.randomUUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex
+import play.api.libs.ws.writeableOf_JsValue
 
 @Singleton
 class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implicit ec: ExecutionContext)
@@ -68,7 +69,7 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
     val fullUrl = pbikConfig.getRegisteredBenefitsPath(credentials, year)
     http
       .get(url"$fullUrl")
-      .setHeader(buildHeadersV1: _*)
+      .setHeader(buildHeadersV1 *)
       .execute[HttpResponse]
   }
 
@@ -79,7 +80,7 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
     val allHeaders = buildHeadersV1
     http
       .put(url"$fullUrl")
-      .setHeader(allHeaders: _*)
+      .setHeader(allHeaders *)
       .withBody(requestBody)
       .execute[HttpResponse]
   }
@@ -88,7 +89,7 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
     val fullUrl = pbikConfig.getAllBenefitsPath(year)
     http
       .get(url"$fullUrl")
-      .setHeader(buildHeadersV1: _*)
+      .setHeader(buildHeadersV1 *)
       .execute[HttpResponse]
   }
 
@@ -98,7 +99,7 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
     val fullUrl = pbikConfig.getEmployerDetailsPath(taxDistrictNumber, payeNumber, year)
     http
       .get(url"$fullUrl")
-      .setHeader(buildHeadersV1: _*)
+      .setHeader(buildHeadersV1 *)
       .execute[HttpResponse]
       .map { response =>
         if (response.status > 299) {
@@ -123,7 +124,7 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
     val fullUrl = pbikConfig.getAllExcludedPeopleForABenefitPath(pbikCredentials, taxYear, iabdType)
     http
       .get(url"$fullUrl")
-      .setHeader(buildHeadersV1: _*)
+      .setHeader(buildHeadersV1 *)
       .execute[HttpResponse]
   }
 
@@ -133,7 +134,7 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
     val fullUrl = pbikConfig.postExcludedPeopleForABenefitPath(pbikCredentials, taxYear)
     http
       .post(url"$fullUrl")
-      .setHeader(buildHeadersV1: _*)
+      .setHeader(buildHeadersV1 *)
       .withBody(exclusions)
       .execute[HttpResponse]
   }
@@ -149,7 +150,7 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
     val fullUrl = pbikConfig.removeExcludedPeopleForABenefitPath(pbikCredentials, taxYear, iabd)
     http
       .post(url"$fullUrl")
-      .setHeader(buildHeadersV1: _*)
+      .setHeader(buildHeadersV1 *)
       .withBody(exclusions)
       .execute[HttpResponse]
   }
@@ -160,7 +161,7 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
     val fullUrl = pbikConfig.postTracePerson(pbikCredentials, taxYear)
     http
       .post(url"$fullUrl")
-      .setHeader(buildHeadersV1: _*)
+      .setHeader(buildHeadersV1 *)
       .withBody(body)
       .execute[HttpResponse]
   }
