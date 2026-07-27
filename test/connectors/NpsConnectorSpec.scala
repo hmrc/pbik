@@ -186,13 +186,32 @@ class NpsConnectorSpec extends AnyWordSpec with FakePBIKApplication with Matcher
       }
 
     ".getPbikCredentials" when {
-      forAll(allPlayFrameworkStatusCodes) { status =>
+      forAll(allPlayFrameworkStatusCodes.filter(_ <= 299)) { status =>
         s"return the $status HttpResponse" in new Setup {
           mockGetEndpoint(Future.successful(expectedResponse(status, Json.toJson(mockCredentials))))
           val result: PbikCredentials =
             await(connectorWithMockUuid.getPbikCredentials("tax office test", "tax reference test", 2020))
           result shouldBe mockCredentials
         }
+      }
+
+      "throw IllegalArgumentException when response status is greater than 299" in new Setup {
+        mockGetEndpoint(
+          Future.successful(expectedResponse(Status.MULTIPLE_CHOICES, Json.toJson(mockCredentials)))
+        )
+
+        val exception =
+          intercept[IllegalArgumentException] {
+            await(
+              connectorWithMockUuid.getPbikCredentials(
+                "tax office test",
+                "tax reference test",
+                2020
+              )
+            )
+          }
+
+        exception.getMessage should include("NPS returned status 300")
       }
 
       "the HTTP GET request fails" should {

@@ -106,6 +106,7 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
           logger.error(
             s"[HmrcTierConnectorWrapped][getPbikCredentials] Failed to get PbikCredentials from NPS, status: ${response.status}, body: ${response.body}"
           )
+          throw new IllegalArgumentException(s"NPS returned status ${response.status}: ${response.body}")
         }
         // fail fast in case not expected body
         response.json.validate[v1.PbikCredentials] match {
