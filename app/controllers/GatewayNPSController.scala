@@ -57,7 +57,7 @@ class GatewayNPSController @Inject() (
     val inputHeaders     = httpResponse.headers.toSeq
     val inputHeaderNames = inputHeaders.map(_._1)
 
-    logger.info(s"[GatewayNPSController][mapHttpResponseToResult] Headers from HIP: $inputHeaderNames")
+    logger.info(s"Headers from HIP: $inputHeaderNames")
 
     val headers = inputHeaders
       .flatMap { case (key, values) =>
@@ -71,7 +71,7 @@ class GatewayNPSController @Inject() (
 
     val outputHeaders = headers.map(_._1)
 
-    logger.info(s"[GatewayNPSController][mapHttpResponseToResult] Filtered headers from HIP: $outputHeaders")
+    logger.info(s"Filtered headers from HIP: $outputHeaders")
 
     Status(status)(body).withHeaders(headers *)
   }

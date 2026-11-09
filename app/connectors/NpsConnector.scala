@@ -104,7 +104,7 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
       .map { response =>
         if (response.status > 299) {
           logger.error(
-            s"[HmrcTierConnectorWrapped][getPbikCredentials] Failed to get PbikCredentials from NPS, status: ${response.status}, body: ${response.body}"
+            s"Failed to get PbikCredentials from NPS, status: ${response.status}, body: ${response.body}"
           )
           throw new IllegalArgumentException(s"NPS returned status ${response.status}: ${response.body}")
         }
@@ -113,7 +113,7 @@ class NpsConnector @Inject() (http: HttpClientV2, pbikConfig: PbikConfig)(implic
           case JsSuccess(value, _) =>
             value
           case JsError(errors)     =>
-            logger.error(s"[HmrcTierConnectorWrapped][getPbikCredentials] Invalid JSON: ${errors.mkString(", ")}")
+            logger.error(s"Invalid JSON: ${errors.mkString(", ")}")
             throw new IllegalArgumentException(s"Invalid JSON received from NPS, ${errors.mkString(", ")}")
         }
       }
